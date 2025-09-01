@@ -107,6 +107,8 @@ Gets an object reference for any value, enabling it to be used as a WeakMap key.
 
 ### Map Keys
 
+With tuple function:
+
 ```typescript
 import { tuple } from 'js-tuple';
 
@@ -121,27 +123,25 @@ const profile = userCache.get(tuple(['user', 'profile', 123]));
 console.log(profile); // { name: 'Alice' }
 ```
 
-### Memoization
+With NestedMap:
 
 ```typescript
 import { tuple } from 'js-tuple';
 
-const memoCache = new Map();
+const userCache = new NestedMap();
 
-function expensiveFunction(a: number, b: string, c: object) {
-  const key = tuple([a, b, c]);
+// Store data using tuple keys
+userCache.set(['user', 'profile', 123], { name: 'Alice' });
+userCache.set(['user', 'settings', 123], { theme: 'dark' });
 
-  if (memoCache.has(key)) {
-    return memoCache.get(key);
-  }
-
-  const result = /* expensive computation */;
-  memoCache.set(key, result);
-  return result;
-}
+// Retrieve data using the same tuple structure
+const profile = userCache.get(['user', 'profile', 123]);
+console.log(profile); // { name: 'Alice' }
 ```
 
 ### Set Operations
+
+With tuple function:
 
 ```typescript
 import { tuple } from 'js-tuple';
@@ -156,19 +156,19 @@ console.log(coordinates.size); // 2
 console.log(coordinates.has(tuple([0, 0]))); // true
 ```
 
-### React State Keys
+With NestedSet:
 
 ```typescript
 import { tuple } from 'js-tuple';
-import { useMemo } from 'react';
 
-function useQuery(endpoint: string, params: object) {
-  const queryKey = tuple([endpoint, params]);
+const coordinates = new NestedSet();
 
-  return useMemo(() => {
-    return fetchData(endpoint, params);
-  }, [queryKey]); // Stable reference for same endpoint + params
-}
+coordinates.add([0, 0]);
+coordinates.add([1, 1]);
+coordinates.add([0, 0]); // Won't add duplicate
+
+console.log(coordinates.size); // 2
+console.log(coordinates.has([0, 0])); // true
 ```
 
 ## Mixed Types Support
@@ -183,21 +183,6 @@ const mixed1 = tuple([1, 'hello', obj, symbol, null]);
 const mixed2 = tuple([1, 'hello', obj, symbol, null]);
 
 console.log(mixed1 === mixed2); // true - same references
-```
-
-## Memory Management
-
-tuple uses advanced memory management techniques:
-
-- **WeakRefs**: Tuples can be garbage collected when no longer referenced
-- **WeakMaps**: Cache structure doesn't prevent garbage collection of objects
-- **Automatic Cleanup**: Primitive wrapper objects are cleaned up automatically
-- **No Memory Leaks**: Designed to work safely in long-running applications
-
-```typescript
-// Tuples are eligible for GC when no longer referenced
-let temp = tuple([1, 2, 3]);
-temp = null; // Tuple can now be garbage collected
 ```
 
 ## TypeScript Support
