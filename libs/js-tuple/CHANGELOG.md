@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.3](https://github.com/codibre/js-utils/compare/js-tuple@0.1.2...${npm.name}@0.1.3) (2025-09-01)
+
+### Bug Fixes
+
+* creating getOrSetMethod ([685029b](https://github.com/codibre/js-utils/commit/685029be241a6b1d08c47f14da977caf4bdbade0))
+
 ## [0.1.2](https://github.com/codibre/js-utils/compare/js-tuple@0.1.1...${npm.name}@0.1.2) (2025-09-01)
 
 ### Bug Fixes
