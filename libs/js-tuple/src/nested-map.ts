@@ -59,14 +59,7 @@ export class NestedMap<K, V> {
 		return this._size;
 	}
 
-	/**
-	 * Stores a value with the given array key.
-	 *
-	 * @param keyArray - The array to use as the key
-	 * @param value - The value to store
-	 * @returns This NestedMap instance for chaining
-	 */
-	set(nestedKey: K, value: V): this {
+	private getOrCreateNode(nestedKey: K) {
 		const keyArray = Array.isArray(nestedKey) ? nestedKey : [nestedKey];
 		let current = this.root;
 
@@ -77,6 +70,18 @@ export class NestedMap<K, V> {
 			if (!next) current.set(key, (next = new Map()));
 			current = next as Map<unknown, unknown>;
 		}
+		return current;
+	}
+
+	/**
+	 * Stores a value with the given array key.
+	 *
+	 * @param keyArray - The array to use as the key
+	 * @param value - The value to store
+	 * @returns This NestedMap instance for chaining
+	 */
+	set(nestedKey: K, value: V): this {
+		const current = this.getOrCreateNode(nestedKey);
 
 		// Check if this is a new entry by seeing if VALUE_KEY already exists
 		const isNewEntry = !current.has(VALUE_KEY);
@@ -102,6 +107,21 @@ export class NestedMap<K, V> {
 		}
 
 		return current;
+	}
+
+	/**
+	 * Gets the value associated with the given array key, or sets a new value if it doesn't exist.
+	 *
+	 * @param nestedKey - The array key to look up
+	 * @param getNewValue - A function to generate a new value if the key doesn't exist
+	 * @returns The existing or newly created value
+	 */
+	getOrSet(nestedKey: K, getNewValue: () => V): V {
+		const node = this.getOrCreateNode(nestedKey);
+		if (node?.has(VALUE_KEY)) return node.get(VALUE_KEY) as V;
+		const value = getNewValue();
+		this.set(nestedKey, value);
+		return value;
 	}
 
 	/**
