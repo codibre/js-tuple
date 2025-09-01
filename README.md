@@ -1,86 +1,18 @@
 
-# nestjs-context
+# js-utils
 
-Useful nestjs libs using AsyncLocalStorage.
+Repo for useful js utilities
 
-[![License](https://img.shields.io/npm/l/newrelic-nestjs-instrumentation.svg)](LICENSE)
-[![GitHub Issues](https://img.shields.io/github/issues/codibre/nestjs-context.svg)](https://github.com/codibre/nestjs-context/issues)
-[![GitHub Stars](https://img.shields.io/github/stars/codibre/nestjs-context.svg)](https://github.com/codibre/nestjs-context/stargazers)
+[![GitHub Issues](https://img.shields.io/github/issues/codibre/js-utils.svg)](https://github.com/codibre/js-utils/issues)
+[![GitHub Stars](https://img.shields.io/github/stars/codibre/js-utils.svg)](https://github.com/codibre/js-utils/stargazers)
 
 ---
 
 ## Overview
 
-This monorepo provides useful libraries for NestJS applications, leveraging AsyncLocalStorage for advanced context management and instrumentation. It is designed to support a variety of production and advanced use cases, and will grow to include more libraries over time.
+This monorepo has some useful javascript utilities that merge seamlessly with vanilla javascript
 
 ---
-
-## 📦 Packages
-
-### [`newrelic-nestjs-instrumentation`](./libs/newrelic-nestjs-instrumentation)
-
-Comprehensive New Relic instrumentation for NestJS applications with advanced transaction management, distributed tracing, and event-driven monitoring.
-
-**Key Features:**
-- ✅ **Controller-based Transaction Management** - Automatic transaction creation and context management
-- ✅ **Message Queue Instrumentation** - SQS, Kafka, and custom queue consumers
-- ✅ **HTTP/2 Compatibility** - Works with modern HTTP/2 applications
-- ✅ **Background Job Tracing** - Cron jobs, scheduled tasks, and async workers
-- ✅ **Distributed Tracing** - Cross-service transaction correlation
-- ✅ **Event-Driven Monitoring** - Real-time transaction lifecycle events
-- ✅ **Async Context Preservation** - Maintains transaction context across async operations
-- ✅ **Custom Transaction Naming** - Based on controller and handler names
-
-**Installation:**
-```bash
-npm install newrelic-nestjs-instrumentation
-# or
-pnpm add newrelic-nestjs-instrumentation
-```
-
-**Quick Start:**
-```typescript
-import { Module } from '@nestjs/common';
-import { NestJsNewrelicInstrumentationModule } from 'newrelic-nestjs-instrumentation';
-
-@Module({
-  imports: [NestJsNewrelicInstrumentationModule],
-})
-export class AppModule {}
-```
-
-## 🏗️ Monorepo Architecture
-
-This project uses a modern monorepo setup optimized for development efficiency and CI/CD automation.
-
-### Tech Stack
-
-- **📦 Package Manager**: [pnpm](https://pnpm.io/) - Fast, disk space efficient package manager
-- **🚀 Build System**: [Turbo](https://turbo.build/) - High-performance build system for JavaScript/TypeScript monorepos
-- **🧪 Testing**: [Jest](https://jestjs.io/) - Comprehensive testing framework with coverage reporting
-- **📏 Code Quality**: [ESLint](https://eslint.org/) + [Prettier](https://prettier.io/) - Linting and formatting
-- **📝 Commit Standards**: [Commitlint](https://commitlint.js.org/) - Conventional commit message validation
-- **🔄 Git Hooks**: [Husky](https://typicode.github.io/husky/) - Pre-commit and pre-push validation
-- **🏷️ Release Management**: Automated semantic versioning and publishing
-
-### Project Structure
-
-
-```
-nestjs-context/
-├── .github/
-│   └── workflows/          # GitHub Actions CI/CD pipelines
-├── libs/                   # Package libraries (add your own!)
-│   ├── newrelic-nestjs-instrumentation/
-│   └── otel-nestjs-instrumentation/
-├── scripts/                # Build and utility scripts
-├── .husky/                 # Git hooks
-├── .jest/                  # Jest configuration
-├── turbo.json              # Turbo build configuration
-├── pnpm-workspace.yaml     # pnpm workspace configuration
-├── commitlint.config.js    # Commit message rules
-└── package.json            # Root package configuration
-```
 
 ## 🛠️ Development
 
@@ -94,8 +26,8 @@ nestjs-context/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/codibre/nestjs-context.git
-   cd nestjs-context
+   git clone https://github.com/codibre/js-utils.git
+   cd js-utils
    ```
 
 2. **Install dependencies**
@@ -233,8 +165,8 @@ We welcome contributions! Here's how to get started:
 ### 1. Fork & Clone
 ```bash
 # Fork on GitHub, then clone your fork
-git clone https://github.com/your-username/nestjs-context.git
-cd nestjs-context
+git clone https://github.com/your-username/js-utils.git
+cd js-utils
 ```
 
 ### 2. Create Feature Branch
@@ -333,8 +265,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🌟 Support
 
 - **Documentation**: Check package-specific READMEs in `libs/`
-- **Issues**: [GitHub Issues](https://github.com/codibre/nestjs-context/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/codibre/nestjs-context/discussions)
+- **Issues**: [GitHub Issues](https://github.com/codibre/js-utils/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/codibre/js-utils/discussions)
 
 ## 🚀 Why Choose This Library?
 

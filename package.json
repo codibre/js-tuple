@@ -1,10 +1,10 @@
 {
-  "name": "nestjs-context",
+  "name": "js-utils",
   "version": "0.0.0",
-  "description": "Useful nestjs libs using AsyncLocalStorage",
+  "description": "Useful, general JavaScript utilities",
   "repository": {
     "type": "git",
-    "url": "https://github.com/codibre/nestjs-context"
+    "url": "https://github.com/codibre/js-utils"
   },
   "private": true,
   "scripts": {
@@ -22,24 +22,16 @@
     "posttest:cov": "rimraf coverage && mkdir -p coverage && npx lcov-result-merger '**/lcov.info'  coverage/lcov.info --prepend-path-fix . --prepend-source-files",
     "commit:validate": "pnpm exec commitlint --from HEAD~1 --to HEAD --verbose",
     "commit:examples": "node scripts/commit-examples.js",
-    "prepare": "husky"
+    "prepare": "husky",
+    "prebenchmark": "pnpm build",
+    "benchmark": "cd libs/js-tuple && node benchmark/map-key-comparison.js"
   },
   "release": {
     "branches": [
       "main"
     ]
   },
-  "keywords": [
-    "nestjs",
-    "instrumentation",
-    "monitoring",
-    "observability",
-    "monorepo",
-    "pnpm",
-    "turbo",
-    "newrelic",
-    "typescript"
-  ],
+  "keywords": [],
   "engines": {
     "node": "22"
   },
@@ -49,42 +41,37 @@
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@nestjs/cli": "^11.0.10",
-    "@nestjs/common": "^11.1.5",
-    "@nestjs/core": "^11.1.5",
-    "@nestjs/schematics": "^11.0.7",
-    "@nestjs/testing": "^11.1.5",
-    "@stylistic/eslint-plugin": "^5.2.2",
-    "@types/express": "^5.0.3",
+    "@stylistic/eslint-plugin": "^5.3.1",
     "@types/jest": "^30.0.0",
     "@types/ms": "^2.1.0",
-    "@types/mssql": "^9.1.7",
-    "@types/node": "^22.17.0",
+    "@types/node": "^24.3.0",
     "@types/supertest": "^6.0.3",
-    "@typescript-eslint/eslint-plugin": "^8.39.0",
-    "@typescript-eslint/parser": "^8.39.0",
-    "eslint": "^9.32.0",
+    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/parser": "^8.41.0",
+    "benchmark": "^2.1.4",
+    "eslint": "^9.34.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
-    "eslint-plugin-unused-imports": "^4.1.4",
-    "fastify": "^5.4.0",
+    "eslint-plugin-unused-imports": "^4.2.0",
     "globals": "^16.3.0",
     "husky": "^9.1.7",
-    "jest": "^30.0.5",
+    "jest": "^30.1.2",
     "jest-callslike": "^0.2.1",
     "jest-extended": "^6.0.0",
     "jest-mock": "^30.0.5",
     "jest-stub-super-constructor": "^0.3.0",
     "lcov-result-merger": "^5.0.1",
-    "lint-staged": "^16.1.4",
+    "lint-staged": "^16.1.6",
     "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
     "ts-jest": "^29.4.1",
-    "ts-loader": "^9.5.2",
+    "ts-loader": "^9.5.4",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "tsconfig-paths-hook": "^0.1.2",
-    "turbo": "^2.5.5",
+    "tsup": "^8.5.0",
+    "turbo": "^2.5.6",
     "typescript": "^5.9.2"
   },
-  "packageManager": "pnpm@10.13.1"
+  "packageManager": "pnpm@10.15.1"
 }

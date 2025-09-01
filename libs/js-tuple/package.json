@@ -1,14 +1,24 @@
 {
   "name": "js-tuple",
-  "version": "0.2.4",
+  "version": "0.0.0",
   "description": "High performance tuples for Map/Set indexing",
   "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.js"
+    },
+    "./min": {
+      "require": "./dist/min/index.js",
+      "import": "./dist/min/index.mjs"
+    }
+  },
   "files": [
     "dist"
   ],
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "nest build",
+    "build": "nest build && tsup",
     "test": "jest --runInBand",
     "test:scope": "jest --runInBand --scope",
     "test:cov": "jest --runInBand --coverage",
@@ -26,26 +36,25 @@
     "node": ">=22"
   },
   "keywords": [
-    "json",
-    "stringify",
-    "fast-json-stringify",
-    "class",
-    "typescript",
-    "nestjs",
-    "swagger",
-    "serialization",
+    "tuple",
+    "immutable",
+    "map key",
+    "array key",
+    "value equality",
+    "nested map",
+    "nested set",
     "performance",
-    "schema",
-    "decorator"
+    "memoization",
+    "deep key"
   ],
   "author": "Farenheith",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/codibre/js-tuple.git"
+    "url": "git+https://github.com/codibre/js-utils.git"
   },
   "bugs": {
-    "url": "https://github.com/codibre/js-tuple.git/issues"
+    "url": "https://github.com/codibre/js-utils.git/issues"
   },
-  "homepage": "https://github.com/codibre/js-tuple/tree/main/libs/fast-class-stringify#readme"
+  "homepage": "https://github.com/codibre/js-utils/tree/main/libs/fast-class-stringify#readme"
 }
