@@ -5,6 +5,7 @@ A high-performance JavaScript library for creating immutable, cached tuples that
 ## Why js-tuple?
 
 In JavaScript, arrays are compared by reference, not by value. This means `[1, 2, 3] !== [1, 2, 3]`, which makes arrays unsuitable as Map keys when you want value-based equality. **js-tuple** solves this by providing cached, immutable arrays where identical element sequences always return the same reference.
+It also offers the classes **NestMap** ad **NestSet**, which deals with array keys internally giving the same tuple experience but without the need of calling tuple every time.
 
 ## Installation
 
@@ -62,12 +63,12 @@ Latest Benchmark Results:
 
 | Method                        | Creation + Map Set         | Map Lookup                |
 |-------------------------------|----------------------------|---------------------------|
-| **Tuple - Create key + Map set**      | **387,744 ops/sec** ±7.50%   | 663,001 ops/sec ±3.63%    |
-| JSON.stringify                | 249,158 ops/sec ±4.52%     | 266,379 ops/sec ±5.91%    |
-| JSON.stringify + MD5          | 31,382 ops/sec ±9.86%      | 33,023 ops/sec ±9.35%     |
-| Manual stringify              | 292,862 ops/sec ±4.57%     | 255,357 ops/sec ±9.05%    |
-| Manual stringify + MD5        | 33,865 ops/sec ±6.32%      | 31,228 ops/sec ±12.22%    |
-| **Nested Map - Direct array** | 318,488 ops/sec ±4.09%     | **1,450,924 ops/sec** ±4.27% |
+| **Tuple - Create key + Map set**      | **944,984 ops/sec** ±7.50%   | 1,066,742 ops/sec ±3.63%    |
+| JSON.stringify                | 514,662 ops/sec ±4.52%     | 479,466 ops/sec ±5.91%    |
+| JSON.stringify + MD5          | 65,226 ops/sec ±9.86%      | 47,913 ops/sec ±9.35%     |
+| Manual stringify              | 507,374 ops/sec ±4.57%     | 387,401 ops/sec ±9.05%    |
+| Manual stringify + MD5        | 64,417 ops/sec ±6.32%      | 56,001 ops/sec ±12.22%    |
+| **Nested Map - Direct array** | 561,827 ops/sec ±4.09%     | **2,045,984 ops/sec** ±4.27% |
 
 **Fastest for creation + insertion:** Tuple - Create key + Map set
 **Fastest for lookup:** Nested Map - Direct array lookup
@@ -201,7 +202,7 @@ function createKey<T extends readonly unknown[]>(elements: T): Readonly<T> {
 
 ## Limitations
 
-- **Primitive Caching**: Wrapper objects for primitives are cached with strong references (may accumulate memory usage in very dynamic scenarios)
+- **Primitive Caching**: Wrapper objects for primitives are cached with strong references (may accumulate memory usage in very dynamic scenarios). This is not a problema for **NestedMap** and **NestedSet**, as they don't use the tuple strategy to control array keys, but a nested one.
 - **Object Identity**: Objects are compared by reference, not deep equality
 - **Modern Environments**: Requires WeakRef and FinalizationRegistry support (Node.js 14.6+, modern browsers)
 

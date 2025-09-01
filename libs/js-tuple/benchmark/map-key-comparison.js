@@ -3,7 +3,7 @@ const crypto = require('crypto');
 
 // Import the tuple function directly from TypeScript source
 require('ts-node/register');
-const { tuple, NestedMap } = require('../src/index.js');
+const { tuple, NestedMap } = require('../dist/min/index.js');
 
 // Create test data
 const testArrays = [
