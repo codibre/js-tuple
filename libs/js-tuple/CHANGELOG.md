@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.4](https://github.com/codibre/js-utils/compare/js-tuple@0.1.3...${npm.name}@0.1.4) (2025-09-02)
+
+### Bug Fixes
+
+* improving NestedMap performance a little bit ([4354dfe](https://github.com/codibre/js-utils/commit/4354dfe065081d65e1c67951ff3e4c53704ff986))
+
 ## [0.1.3](https://github.com/codibre/js-utils/compare/js-tuple@0.1.2...${npm.name}@0.1.3) (2025-09-01)
 
 ### Bug Fixes
