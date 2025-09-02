@@ -1,6 +1,6 @@
 # js-tuple
 
-A high-performance JavaScript library for creating immutable, cached tuples that can be safely used as Map keys.
+A high-performance JavaScript library for managed nested maps, nested set and creating immutable, cached tuples that can be safely used as Map keys.
 
 ## Why js-tuple?
 
