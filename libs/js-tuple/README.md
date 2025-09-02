@@ -18,19 +18,7 @@ npm install js-tuple
 ```typescript
 import { tuple, NestedMap, NestedSet } from 'js-tuple';
 
-// Same elements = same reference
-const t1 = tuple([1, 2, 3]);
-const t2 = tuple([1, 2, 3]);
-console.log(t1 === t2); // true ✅
-
-// Perfect for Map keys
-const cache = new Map();
-cache.set(tuple(['user', 123]), { name: 'John' });
-cache.set(tuple(['post', 456]), { title: 'Hello' });
-
-// Retrieve values using the same tuple
-console.log(cache.get(tuple(['user', 123]))); // { name: 'John' } ✅
-
+// RECOMMENDED: NestedMap and NestedSet
 // NestedMap: value-based equality for array keys
 const map = new NestedMap<[number, string], string>();
 map.set([1, 'a'], 'foo');
@@ -46,6 +34,22 @@ set.add([1, 'a']); // No duplicate
 set.add([2, 'b']);
 console.log(set.has([1, 'a'])); // true
 console.log(set.size); // 2
+
+
+// Another option if you can't use NestedMap or NestedSet: tuple
+
+// Same elements = same reference
+const t1 = tuple([1, 2, 3]);
+const t2 = tuple([1, 2, 3]);
+console.log(t1 === t2); // true ✅
+
+// Perfect for Map keys
+const cache = new Map();
+cache.set(tuple(['user', 123]), { name: 'John' });
+cache.set(tuple(['post', 456]), { title: 'Hello' });
+
+// Retrieve values using the same tuple
+console.log(cache.get(tuple(['user', 123]))); // { name: 'John' } ✅
 ```
 
 ## Features
@@ -63,15 +67,14 @@ Latest Benchmark Results:
 
 | Method                        | Creation + Map Set         | Map Lookup                |
 |-------------------------------|----------------------------|---------------------------|
-| **Tuple - Create key + Map set**      | **944,984 ops/sec** ±7.50%   | 1,066,742 ops/sec ±3.63%    |
-| JSON.stringify                | 514,662 ops/sec ±4.52%     | 479,466 ops/sec ±5.91%    |
-| JSON.stringify + MD5          | 65,226 ops/sec ±9.86%      | 47,913 ops/sec ±9.35%     |
-| Manual stringify              | 507,374 ops/sec ±4.57%     | 387,401 ops/sec ±9.05%    |
-| Manual stringify + MD5        | 64,417 ops/sec ±6.32%      | 56,001 ops/sec ±12.22%    |
-| **Nested Map - Direct array** | 561,827 ops/sec ±4.09%     | **2,045,984 ops/sec** ±4.27% |
+| **Tuple - Create key + Map set**      | 650,280 ops/sec ±7.50%   | 1,093,434 ops/sec ±3.63%    |
+| JSON.stringify                | 414,829 ops/sec ±4.52%     | 471,930 ops/sec ±5.91%    |
+| JSON.stringify + MD5          | 61,155 ops/sec ±9.86%      | 57,899 ops/sec ±9.35%     |
+| Manual stringify              | 564,227 ops/sec ±4.57%     | 497,562 ops/sec ±9.05%    |
+| Manual stringify + MD5        | 63,409 ops/sec ±6.32%      | 59,595 ops/sec ±12.22%    |
+| **Nested Map - Direct array** | **700,708 ops/sec ±4.09%**     | **2,386,124 ops/sec** ±4.27% |
 
-**Fastest for creation + insertion:** Tuple - Create key + Map set
-**Fastest for lookup:** Nested Map - Direct array lookup
+**Fastest option overall:** Nested Map is the best option in all cases
 
 Both tuple and nested strategies are much faster than any stringification approach.
 
@@ -108,22 +111,6 @@ Gets an object reference for any value, enabling it to be used as a WeakMap key.
 
 ### Map Keys
 
-With tuple function:
-
-```typescript
-import { tuple } from 'js-tuple';
-
-const userCache = new Map();
-
-// Store data using tuple keys
-userCache.set(tuple(['user', 'profile', 123]), { name: 'Alice' });
-userCache.set(tuple(['user', 'settings', 123]), { theme: 'dark' });
-
-// Retrieve data using the same tuple structure
-const profile = userCache.get(tuple(['user', 'profile', 123]));
-console.log(profile); // { name: 'Alice' }
-```
-
 With NestedMap:
 
 ```typescript
@@ -140,22 +127,23 @@ const profile = userCache.get(['user', 'profile', 123]);
 console.log(profile); // { name: 'Alice' }
 ```
 
-### Set Operations
-
 With tuple function:
 
 ```typescript
 import { tuple } from 'js-tuple';
 
-const coordinates = new Set();
+const userCache = new Map();
 
-coordinates.add(tuple([0, 0]));
-coordinates.add(tuple([1, 1]));
-coordinates.add(tuple([0, 0])); // Won't add duplicate
+// Store data using tuple keys
+userCache.set(tuple(['user', 'profile', 123]), { name: 'Alice' });
+userCache.set(tuple(['user', 'settings', 123]), { theme: 'dark' });
 
-console.log(coordinates.size); // 2
-console.log(coordinates.has(tuple([0, 0]))); // true
+// Retrieve data using the same tuple structure
+const profile = userCache.get(tuple(['user', 'profile', 123]));
+console.log(profile); // { name: 'Alice' }
 ```
+
+### Set Operations
 
 With NestedSet:
 
@@ -170,6 +158,21 @@ coordinates.add([0, 0]); // Won't add duplicate
 
 console.log(coordinates.size); // 2
 console.log(coordinates.has([0, 0])); // true
+```
+
+With tuple function:
+
+```typescript
+import { tuple } from 'js-tuple';
+
+const coordinates = new Set();
+
+coordinates.add(tuple([0, 0]));
+coordinates.add(tuple([1, 1]));
+coordinates.add(tuple([0, 0])); // Won't add duplicate
+
+console.log(coordinates.size); // 2
+console.log(coordinates.has(tuple([0, 0]))); // true
 ```
 
 ## Mixed Types Support
@@ -202,9 +205,9 @@ function createKey<T extends readonly unknown[]>(elements: T): Readonly<T> {
 
 ## Limitations
 
-- **Primitive Caching**: Wrapper objects for primitives are cached with strong references (may accumulate memory usage in very dynamic scenarios). This is not a problema for **NestedMap** and **NestedSet**, as they don't use the tuple strategy to control array keys, but a nested one.
+- **Primitive Caching**: Wrapper objects for primitives are cached with strong references (may accumulate memory usage in very dynamic scenarios). This is not a problem for **NestedMap** and **NestedSet**, as they don't use the tuple strategy to control array keys, but a nested one.
 - **Object Identity**: Objects are compared by reference, not deep equality
-- **Modern Environments**: Requires WeakRef and FinalizationRegistry support (Node.js 14.6+, modern browsers)
+- **Modern Environments**: Requires WeakRef support (Node.js 14.6+, modern browsers)
 
 ## Browser Support
 
@@ -227,31 +230,18 @@ MIT License - see LICENSE file for details.
 ### NestedMap & NestedSet
 
 - **Value-based equality**: Arrays with the same values are treated as the same key, even if they are different instances.
-- **Deep key support**: Works for any array of values, including objects and primitives.
+- **Deep key support**: Works for any array of values, including objects and primitives (but no deep comparison in objects is done).
 - **Convenient API**: No need to call a tuple function, just use arrays directly.
-- **Much faster for reading**: Lookup performance is significantly better than tuple-based Map/Set.
-- **Best for general usage**: Since reads are usually more common than writes, NestedMap & NestedSet are recommended for most use cases.
+- **Fastest option**: Writing and reading performance are better than tuple-based Map/Set.
+- **Best for general usage**: NestedMap & NestedSet are recommended for most use cases.
 
 ### Map/Set + tuple function
 
 - **Fastest for writing**: Tuple-based Map/Set is faster for key creation and insertion.
 - **Reference equality**: Only identical element arrays return the same reference, so you must always use the tuple function to create keys.
-- **Memory efficient**: Uses WeakRefs and WeakMaps for automatic cleanup.
-- **Best for read reading scenarios**: When writing is way common than reading, or when you just can't use NestedMap/NestedSet
-
-#### Example
-
-```typescript
-import { tuple } from 'js-tuple';
-
-const cache = new Map();
-cache.set(tuple([1, 'a']), 'foo');
-cache.set(tuple([2, 'b']), 'bar');
-console.log(cache.get(tuple([1, 'a']))); // 'foo'
-```
+- **Fallback option**: Use this if, for any reason, NestedMap and NestedSet can't be used.
 
 ## Summary
 
-- Both **NestedMap/NestedSet** and **Map/Set + tuple** are much better than key stringification for both writing and reading.
-- For most applications, **NestedMap & NestedSet** are recommended, as lookup/read performance is much higher and reads are typically more frequent.
-- Use **Map/Set + tuple** if you need the absolute fastest key creation and you control all key generation.
+- Both **NestedMap/NestedSet** and **Map/Set + tuple** are much better than key stringification for both writing and reading, although the nested variants surpass tuple usage in performance;
+- For most applications, **NestedMap & NestedSet** are recommended, as tuple primitive caching may use additional memory over time.

@@ -44,9 +44,9 @@ type CacheNode = {
  * ```
  */
 export class NestedMap<K, V> {
-	readonly #root: CacheNode = {};
+	private readonly _root: CacheNode = {};
 
-	#_size = 0;
+	private _size = 0;
 
 	/**
 	 * Creates a new NestedMap instance.
@@ -64,12 +64,12 @@ export class NestedMap<K, V> {
 	 * Gets the number of key-value pairs in the map.
 	 */
 	get size(): number {
-		return this.#_size;
+		return this._size;
 	}
 
-	#getOrCreateNode(nestedKey: K) {
+	private _getOrCreateNode(nestedKey: K) {
 		const keyArray = Array.isArray(nestedKey) ? nestedKey : [nestedKey];
-		let current = this.#root;
+		let current = this._root;
 
 		// Navigate/create the path
 		for (let i = 0; i < keyArray.length; i++) {
@@ -90,7 +90,7 @@ export class NestedMap<K, V> {
 	 * @returns This NestedMap instance for chaining
 	 */
 	set(nestedKey: K, value: V): this {
-		const current = this.#getOrCreateNode(nestedKey);
+		const current = this._getOrCreateNode(nestedKey);
 
 		// Check if this is a new entry by seeing if VALUE_KEY already exists
 		const isNewEntry = current[SET] !== 1;
@@ -99,16 +99,16 @@ export class NestedMap<K, V> {
 		current[VAL] = value;
 
 		if (isNewEntry) {
-			this.#_size++;
+			this._size++;
 			current[SET] = 1;
 		}
 
 		return this;
 	}
 
-	#getNode(nestedKey: K) {
+	private _getNode(nestedKey: K) {
 		const keyArray = Array.isArray(nestedKey) ? nestedKey : [nestedKey];
-		let current = this.#root;
+		let current = this._root;
 		// Navigate/create the path
 		for (let i = 0; i < keyArray.length; i++) {
 			const key = keyArray[i];
@@ -128,7 +128,7 @@ export class NestedMap<K, V> {
 	 * @returns The existing or newly created value
 	 */
 	getOrSet(nestedKey: K, getNewValue: () => V): V {
-		const node = this.#getOrCreateNode(nestedKey);
+		const node = this._getOrCreateNode(nestedKey);
 		if (node?.[VAL] !== undefined) return node[VAL] as V;
 		const value = getNewValue();
 		this.set(nestedKey, value);
@@ -142,7 +142,7 @@ export class NestedMap<K, V> {
 	 * @returns The value if found, undefined otherwise
 	 */
 	get(keyArray: K): V | undefined {
-		return this.#getNode(keyArray)?.[VAL] as V | undefined;
+		return this._getNode(keyArray)?.[VAL] as V | undefined;
 	}
 
 	/**
@@ -152,7 +152,7 @@ export class NestedMap<K, V> {
 	 * @returns True if the key exists, false otherwise
 	 */
 	has(keyArray: K): boolean {
-		return this.#getNode(keyArray)?.[VAL] !== undefined;
+		return this._getNode(keyArray)?.[VAL] !== undefined;
 	}
 
 	/**
@@ -165,7 +165,7 @@ export class NestedMap<K, V> {
 		const keyArray = Array.isArray(nestedKey) ? nestedKey : [nestedKey];
 
 		const path: Array<{ map: CacheNode; key: unknown }> = [];
-		let current = this.#root;
+		let current = this._root;
 
 		// Navigate the path and record it for cleanup
 		for (let i = 0; i < keyArray.length; i++) {
@@ -180,7 +180,7 @@ export class NestedMap<K, V> {
 		// Remove the value
 		current[VAL] = undefined;
 		current[SET] = 0;
-		this.#_size--;
+		this._size--;
 
 		// Clean up empty Maps from the bottom up
 		if (current[MAP]?.size) {
@@ -209,8 +209,8 @@ export class NestedMap<K, V> {
 	 * Removes all entries from the map.
 	 */
 	clear(): void {
-		this.#root[MAP]?.clear();
-		this.#_size = 0;
+		this._root[MAP]?.clear();
+		this._size = 0;
 	}
 
 	/**
@@ -234,7 +234,7 @@ export class NestedMap<K, V> {
 	*entries(): IterableIterator<[K, V]> {
 		// Stack to store {node, path} pairs for traversal
 		const stack: Array<{ node: CacheNode; path: K }> = [
-			{ node: this.#root, path: [] as unknown as K },
+			{ node: this._root, path: [] as unknown as K },
 		];
 
 		while (stack.length > 0) {
