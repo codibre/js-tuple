@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.1](https://github.com/codibre/js-utils/compare/js-tuple@0.2.0...${npm.name}@0.2.1) (2025-09-06)
+
+### Bug Fixes
+
+* bettering getOrSet type ([87c77a2](https://github.com/codibre/js-utils/commit/87c77a2bf4a5d7d35650de135dedd977594e7315))
+
 ## [0.2.0](https://github.com/codibre/js-utils/compare/js-tuple@0.1.5...${npm.name}@0.2.0) (2025-09-06)
 
 ### Features
