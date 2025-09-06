@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0](https://github.com/codibre/js-utils/compare/js-tuple@0.1.5...${npm.name}@0.2.0) (2025-09-06)
+
+### Features
+
+* preparing sub node iteration ([f7a0284](https://github.com/codibre/js-utils/commit/f7a0284fa129c341c0cf626ec69f96cf93a530d4))
+
 ## [0.1.5](https://github.com/codibre/js-utils/compare/js-tuple@0.1.4...${npm.name}@0.1.5) (2025-09-02)
 
 ### Bug Fixes
