@@ -19,7 +19,11 @@ export class NestedSet<K> implements Set<K> {
 		thisArg?: unknown,
 	): void {
 		thisArg ??= this;
-		this._map.forEach.call(thisArg, (v, k) => callbackfn(k, k, this), thisArg);
+		this._map.forEach.call(
+			thisArg,
+			(_, k: K) => callbackfn(k, k, this),
+			thisArg,
+		);
 	}
 	has(value: K): boolean {
 		return this._map.has(value);

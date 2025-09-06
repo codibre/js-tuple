@@ -1,6 +1,43 @@
 import { NestedSet } from '../src/nested-set';
 
 describe('NestedSet', () => {
+	it('has correct Symbol.toStringTag', () => {
+		// Arrange
+		const set = new NestedSet<[number, string]>();
+
+		// Act & Assert
+		expect(Object.prototype.toString.call(set)).toBe('[object NestedSet]');
+	});
+
+	it('returns all keys with keys()', () => {
+		// Arrange
+		const set = new NestedSet<[number, string]>();
+		set.add([1, 'foo']);
+		set.add([2, 'bar']);
+
+		// Act
+		const keys = Array.from(set.keys());
+
+		// Assert
+		expect(keys).toContainEqual([1, 'foo']);
+		expect(keys).toContainEqual([2, 'bar']);
+		expect(keys.length).toBe(2);
+	});
+
+	it('returns all values with values()', () => {
+		// Arrange
+		const set = new NestedSet<[number, string]>();
+		set.add([1, 'foo']);
+		set.add([2, 'bar']);
+
+		// Act
+		const values = Array.from(set.values());
+
+		// Assert
+		expect(values).toContainEqual([1, 'foo']);
+		expect(values).toContainEqual([2, 'bar']);
+		expect(values.length).toBe(2);
+	});
 	it('adds and checks values', () => {
 		// Arrange
 		const set = new NestedSet<[number, string]>();
