@@ -133,9 +133,9 @@ export class NestedMap<K, V> {
 	 * @param getNewValue - A function to generate a new value if the key doesn't exist
 	 * @returns The existing or newly created value
 	 */
-	getOrSet(nestedKey: K, getNewValue: () => V): V {
+	getOrSet<T extends V>(nestedKey: K, getNewValue: () => T): T {
 		const node = this._getOrCreateNode(nestedKey);
-		if (node?.[VAL] !== undefined) return node[VAL] as V;
+		if (node?.[VAL] !== undefined) return node[VAL] as T;
 		const value = getNewValue();
 		this.set(nestedKey, value);
 		return value;
