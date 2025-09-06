@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.2](https://github.com/codibre/js-utils/compare/js-tuple@0.2.1...${npm.name}@0.2.2) (2025-09-06)
+
+### Bug Fixes
+
+* bettering getOrSet callback signature ([0b50b7e](https://github.com/codibre/js-utils/commit/0b50b7ede5bfa83f2477b6fe12e4b564b991a957))
+
 ## [0.2.1](https://github.com/codibre/js-utils/compare/js-tuple@0.2.0...${npm.name}@0.2.1) (2025-09-06)
 
 ### Bug Fixes
