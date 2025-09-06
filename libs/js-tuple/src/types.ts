@@ -13,3 +13,19 @@ export type TuplePrefixes<T extends unknown[]> = T extends []
 export type PartialKey<K> =
 	| K
 	| (K extends unknown[] ? TuplePrefixes<K>[number] : K);
+
+export enum TraverseMode {
+	DepthFirst = 'depth-first',
+	BreadthFirst = 'breadth-first',
+}
+
+export enum YieldMode {
+	PreOrder = 'pre-order',
+	PostOrder = 'post-order',
+}
+
+export type IterationOptions<K> = {
+	basePath?: PartialKey<K>;
+	traverseMode?: TraverseMode;
+	yieldMode?: YieldMode;
+};

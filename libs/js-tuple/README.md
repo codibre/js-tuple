@@ -209,6 +209,22 @@ function createKey<T extends readonly unknown[]>(elements: T): Readonly<T> {
 - **Object Identity**: Objects are compared by reference, not deep equality
 - **Modern Environments**: Requires WeakRef support (Node.js 14.6+, modern browsers)
 
+## Advanced Usage
+
+For complex scenarios—such as custom traversal orders, subtree iteration, or post-order cleanup—js-tuple provides highly flexible traversal APIs for both `NestedMap` and `NestedSet`. You can choose between depth-first and breadth-first traversal, and between pre-order and post-order yielding, to match your algorithm's needs.
+
+- **NestedMap:** See [Advanced NestedMap.entries](./docs/nestedmap-entries-advanced.md) for details on traversal modes, yield order, edge cases, and performance considerations.
+- **NestedSet:** See [Advanced NestedSet](./docs/nestedset-advanced.md) for set-specific traversal, subtree operations, and advanced patterns.
+
+These guides cover:
+- How to use `basePath` for partial/subtree traversal
+- Differences between DFS/BFS and pre/post order
+- Edge cases (missing values, empty subtrees)
+- Performance and memory tradeoffs
+
+If you need to implement advanced algorithms, process hierarchical data, or optimize traversal, start with these docs!
+
+
 ## Browser Support
 
 - **Node.js**: 14.6.0+

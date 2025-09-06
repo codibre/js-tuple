@@ -1,13 +1,98 @@
+import { TraverseMode, YieldMode } from 'src/types';
 import { NestedMap } from '../src';
 
 describe('NestedMap', () => {
+	it('should traverse all nodes in depth-first order (pre-order)', () => {
+		// Arrange
+		const map = new NestedMap<number[], string>();
+		map.set([1], 'a');
+		map.set([1, 2], 'b');
+		map.set([1, 2, 4], 'c');
+		map.set([1, 3], 'd');
+		map.set([1, 3, 5], 'e');
+
+		// Act
+		const keys = Array.from(
+			map.entries({ traverseMode: TraverseMode.DepthFirst }),
+		).map(([k]) => k);
+
+		// Assert: Depth-first order (pre-order)
+		expect(keys).toEqual([[1], [1, 3], [1, 3, 5], [1, 2], [1, 2, 4]]);
+	});
+
+	it('should traverse all nodes in depth-first order (post-order)', () => {
+		// Arrange
+		const map = new NestedMap<number[], string>();
+		map.set([1], 'a');
+		map.set([1, 2], 'b');
+		map.set([1, 2, 4], 'c');
+		map.set([1, 3], 'd');
+		map.set([1, 3, 5], 'e');
+
+		// Act
+		const keys = Array.from(
+			map.entries({
+				traverseMode: TraverseMode.DepthFirst,
+				yieldMode: YieldMode.PostOrder,
+			}),
+		).map(([k]) => k);
+
+		// Assert: Depth-first order (post-order)
+		expect(keys).toEqual([[1, 3, 5], [1, 3], [1, 2, 4], [1, 2], [1]]);
+	});
+
+	it('should traverse all nodes in breadth-first order (pre-order)', () => {
+		// Arrange
+		const map = new NestedMap<number[], string>();
+		map.set([1], 'a');
+		map.set([1, 2], 'b');
+		map.set([1, 2, 4], 'c');
+		map.set([1, 3], 'd');
+		map.set([1, 3, 5], 'e');
+
+		// Act
+		const keys = Array.from(
+			map.entries({ traverseMode: TraverseMode.BreadthFirst }),
+		).map(([k]) => k);
+
+		// Assert: Breadth-first order (pre-order)
+		expect(keys).toEqual([[1], [1, 2], [1, 3], [1, 2, 4], [1, 3, 5]]);
+	});
+
+	it('should traverse all nodes in breadth-first order (post-order)', () => {
+		// Arrange
+		const map = new NestedMap<number[], string>();
+		map.set([1], 'a');
+		map.set([1, 2], 'b');
+		map.set([1, 2, 4], 'c');
+		map.set([1, 3], 'd');
+		map.set([1, 3, 5], 'e');
+
+		// Act
+		const keys = Array.from(
+			map.entries({
+				traverseMode: TraverseMode.BreadthFirst,
+				yieldMode: YieldMode.PostOrder,
+			}),
+		).map(([k]) => k);
+
+		// Assert: Breadth-first order (post-order)
+		expect(keys.map((k) => k.join(','))).toEqual([
+			'1,2,4',
+			'1,3,5',
+			'1,2',
+			'1,3',
+			'1',
+		]);
+	});
+
 	it('should return no entries if basePath does not exist (covers line 242)', () => {
 		// Arrange
 		const map = new NestedMap<number[], string>();
 		map.set([1, 2], 'a');
 
 		// Act
-		const entries = Array.from(map.entries([9, 9])); // basePath does not exist
+		const entries = Array.from(map.entries({ basePath: [9, 9] })); // basePath does not exist
 
 		// Assert
 		expect(entries).toEqual([]);
@@ -165,6 +250,7 @@ describe('NestedMap', () => {
 			[['x', 'y', 'z'], 'xyz'],
 		]);
 	});
+
 	it('should get existing value or set a new one with getOrSet', () => {
 		// Arrange
 		const map = new NestedMap<[number, string], string>();
@@ -187,7 +273,7 @@ describe('NestedMap', () => {
 
 		// Act
 		// Use entries(basePath) to iterate over all keys in the subnode referenced by [1]
-		const subnodeEntries = Array.from(map.entries([1]));
+		const subnodeEntries = Array.from(map.entries({ basePath: [1] }));
 
 		// Assert
 		expect(subnodeEntries).toHaveLength(2);
@@ -204,7 +290,7 @@ describe('NestedMap', () => {
 
 		// Act
 		// Use entries(basePath) to iterate over all keys in the subnode referenced by [1]
-		const subnodeEntries = Array.from(map.entries(1));
+		const subnodeEntries = Array.from(map.entries({ basePath: 1 }));
 
 		// Assert
 		expect(subnodeEntries).toHaveLength(2);

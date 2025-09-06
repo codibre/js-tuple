@@ -1,4 +1,5 @@
-import { PartialKey } from './types';
+import { BfsList } from './internal';
+import { IterationOptions, PartialKey, TraverseMode, YieldMode } from './types';
 
 const VAL = Symbol('value');
 const SET = Symbol('valueSet');
@@ -10,9 +11,118 @@ type CacheNode = {
 	[VAL]?: unknown;
 };
 
+type PathArray = readonly unknown[];
+
+interface StackItem {
+	node: CacheNode;
+	path: PathArray;
+	visited?: boolean;
+}
+
 function treatKey<K>(nestedKey: K) {
 	return Array.isArray(nestedKey) ? nestedKey : [nestedKey];
 }
+
+function getValueFactory<K, V, T extends boolean>(justValue: T) {
+	return justValue
+		? ({ node }: StackItem) => node[VAL] as T extends false ? [K, V] : V
+		: ({ path, node }: StackItem) =>
+				[path as K, node[VAL] as V] as T extends false ? [K, V] : V;
+}
+
+const EMPTY: PathArray = Object.freeze([]);
+
+function pushToStack<T extends boolean>(
+	stack: StackItem[] | BfsList<StackItem>,
+	justValue: T,
+	stackItem: StackItem,
+) {
+	const { node, path } = stackItem;
+	if (!node[MAP]?.size) return;
+	for (const [key, sub] of node[MAP].entries()) {
+		stack.push({
+			node: sub,
+			path: justValue ? EMPTY : Object.freeze([...path, key]),
+		});
+	}
+}
+
+const traverser = {
+	[TraverseMode.BreadthFirst]: {
+		*[YieldMode.PostOrder]<K, V, T extends boolean>(
+			root: CacheNode,
+			prevPath: PathArray,
+			justValue: T,
+		): MapIterator<T extends false ? [K, V] : V> {
+			const getValue = getValueFactory<K, V, T>(justValue);
+			function* bfsPostOrderLevel(
+				nodes: Array<StackItem>,
+			): MapIterator<T extends false ? [K, V] : V> {
+				const nextLevel: StackItem[] = [];
+				for (const stackItem of nodes) {
+					pushToStack(nextLevel, justValue, stackItem);
+				}
+				if (nextLevel.length) yield* bfsPostOrderLevel(nextLevel);
+				for (const stackItem of nodes) {
+					if (stackItem.node[SET]) yield getValue(stackItem);
+				}
+			}
+			yield* bfsPostOrderLevel([{ node: root, path: prevPath }]);
+		},
+
+		*[YieldMode.PreOrder]<K, V, T extends boolean>(
+			root: CacheNode,
+			prevPath: PathArray,
+			justValue: T,
+		): MapIterator<T extends false ? [K, V] : V> {
+			const queue = new BfsList({ node: root, path: prevPath });
+			const getValue = getValueFactory<K, V, T>(justValue);
+			do {
+				const stackItem = queue.pop() as StackItem;
+				if (stackItem.node[SET]) yield getValue(stackItem);
+				pushToStack(queue, justValue, stackItem);
+			} while (queue.length > 0);
+		},
+	},
+
+	[TraverseMode.DepthFirst]: {
+		*[YieldMode.PostOrder]<K, V, T extends boolean>(
+			root: CacheNode,
+			prevPath: unknown[],
+			justValue: T,
+		): MapIterator<T extends false ? [K, V] : V> {
+			const stack: StackItem[] = [{ node: root, path: prevPath }];
+			const getValue = getValueFactory<K, V, T>(justValue);
+			do {
+				const current = stack.pop() as StackItem;
+				const { node } = current;
+				if (current.visited) {
+					if (node[SET]) yield getValue(current);
+				} else if (!node[MAP]?.size) {
+					if (node[SET]) yield getValue(current);
+				} else {
+					current.visited = true;
+					stack.push(current);
+					pushToStack(stack, justValue, current);
+				}
+			} while (stack.length > 0);
+		},
+
+		*[YieldMode.PreOrder]<K, V, T extends boolean>(
+			root: CacheNode,
+			prevPath: readonly unknown[],
+			justValue: T,
+		): MapIterator<T extends false ? [K, V] : V> {
+			const stack: Array<StackItem> = [{ node: root, path: prevPath }];
+			const getValue = getValueFactory<K, V, T>(justValue);
+			do {
+				const current = stack.pop() as StackItem;
+				if (current.node[SET]) yield getValue(current);
+				pushToStack(stack, justValue, current);
+			} while (stack.length > 0);
+		},
+	},
+};
 
 /**
  * A Map implementation that uses arrays as keys by storing them in a nested Map structure.
@@ -231,55 +341,58 @@ export class NestedMap<K, V> {
 		}
 	}
 
-	/**
-	 * Returns an iterator of key-value pairs.
-	 */
-	*entries(basePath?: PartialKey<K>): IterableIterator<[K, V]> {
+	#traverse<T extends boolean>(
+		justValue: T,
+		options: IterationOptions<K> = {},
+	): MapIterator<T extends false ? [K, V] : V> {
+		const {
+			basePath,
+			traverseMode = TraverseMode.DepthFirst,
+			yieldMode = YieldMode.PreOrder,
+		} = options;
 		let root: CacheNode | undefined;
 		const prevPath: unknown[] = [];
 		if (basePath) {
 			root = this._getNode(basePath);
-			if (!root) return;
+			if (!root) {
+				return traverser[TraverseMode.BreadthFirst][yieldMode](
+					{},
+					EMPTY,
+					justValue,
+				);
+			} // empty iterator
 			if (Array.isArray(basePath)) prevPath.push(...basePath);
 			else prevPath.push(basePath);
 		} else root = this._root;
-		// Stack to store {node, path} pairs for traversal
-		const stack = [{ node: root, path: prevPath }];
+		return traverser[traverseMode][yieldMode](root, prevPath, justValue);
+	}
 
-		while (stack.length > 0) {
-			const { node, path } = stack.pop() as {
-				node: CacheNode;
-				path: unknown[];
-			};
-
-			for (const [key, sub] of node[MAP]?.entries() ?? []) {
-				const newPath = [...path, key];
-				if (sub[SET]) yield [newPath as unknown as K, sub[VAL] as V];
-				// Add to stack for later processing (LIFO order maintains depth-first traversal)
-				if (sub[MAP]) stack.push({ node: sub, path: newPath });
-			}
-		}
+	/**
+	 * Returns an iterator of key-value pairs.
+	 */
+	entries(options: IterationOptions<K> = {}): IterableIterator<[K, V]> {
+		return this.#traverse(false, options);
 	}
 
 	/**
 	 * Returns an iterator of keys.
 	 */
-	*keys(basePath?: PartialKey<K>): MapIterator<K> {
-		for (const [key] of this.entries(basePath)) yield key;
+	*keys(options?: IterationOptions<K>): MapIterator<K> {
+		for (const [key] of this.entries(options)) yield key;
 	}
 
 	/**
 	 * Returns an iterator of values.
 	 */
-	*values(basePath?: PartialKey<K>): MapIterator<V> {
-		for (const [, value] of this.entries(basePath)) yield value;
+	values(options: IterationOptions<K> = {}): MapIterator<V> {
+		return this.#traverse(true, options);
 	}
 
 	/**
 	 * Returns the default iterator (same as entries()).
 	 */
 	[Symbol.iterator](): IterableIterator<[K, V]> {
-		return this.entries();
+		return this.#traverse(false, {});
 	}
 
 	/**

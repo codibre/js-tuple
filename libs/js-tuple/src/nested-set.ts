@@ -1,4 +1,5 @@
 import { NestedMap } from './nested-map';
+import { IterationOptions } from './types';
 
 export interface NestedSet<K> extends Set<K> {}
 export class NestedSet<K> implements Set<K> {
@@ -33,18 +34,18 @@ export class NestedSet<K> implements Set<K> {
 		return this._map.size;
 	}
 
-	*entries(): SetIterator<[K, K]> {
-		for (const key of this._map.keys()) {
+	*entries(options?: IterationOptions<K>): SetIterator<[K, K]> {
+		for (const key of this._map.keys(options)) {
 			yield [key, key];
 		}
 	}
 
-	keys(): SetIterator<K> {
-		return this._map.keys();
+	keys(options?: IterationOptions<K>): SetIterator<K> {
+		return this._map.keys(options);
 	}
 
-	values(): SetIterator<K> {
-		return this._map.keys();
+	values(options?: IterationOptions<K>): SetIterator<K> {
+		return this._map.keys(options);
 	}
 
 	[Symbol.iterator](): SetIterator<K> {

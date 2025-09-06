@@ -1,3 +1,4 @@
+import { TraverseMode, YieldMode } from 'src/types';
 import { NestedSet } from '../src/nested-set';
 
 describe('NestedSet', () => {
@@ -144,5 +145,113 @@ describe('NestedSet', () => {
 		expect(set.size).toBe(1);
 		expect(set.has(arr1)).toBe(true);
 		expect(set.has(arr2)).toBe(true);
+	});
+
+	it('should traverse all nodes in depth-first order (pre-order)', () => {
+		// Arrange
+		const set = new NestedSet();
+		set.add([1]);
+		set.add([1, 2]);
+		set.add([1, 2, 4]);
+		set.add([1, 3]);
+		set.add([1, 3, 5]);
+
+		// Act
+		const keys = Array.from(
+			set.entries({ traverseMode: TraverseMode.DepthFirst }),
+		).map(([k]) => k);
+
+		// Assert: Depth-first order (pre-order)
+		expect(keys).toEqual([[1], [1, 3], [1, 3, 5], [1, 2], [1, 2, 4]]);
+	});
+
+	it('should traverse all nodes in depth-first order (post-order)', () => {
+		// Arrange
+		const set = new NestedSet<unknown[]>();
+		set.add([1]);
+		set.add([1, 2]);
+		set.add([1, 2, 4]);
+		set.add([1, 3]);
+		set.add([1, 3, 5]);
+
+		// Act
+		const keys = Array.from(
+			set.entries({
+				traverseMode: TraverseMode.DepthFirst,
+				yieldMode: YieldMode.PostOrder,
+			}),
+		).map(([k]) => k);
+
+		// Assert: Depth-first order (post-order)
+		expect(keys).toEqual([[1, 3, 5], [1, 3], [1, 2, 4], [1, 2], [1]]);
+	});
+
+	it('should traverse all nodes in breadth-first order (pre-order)', () => {
+		// Arrange
+		const set = new NestedSet();
+		set.add([1]);
+		set.add([1, 2]);
+		set.add([1, 2, 4]);
+		set.add([1, 3]);
+		set.add([1, 3, 5]);
+
+		// Act
+		const keys = Array.from(
+			set.entries({ traverseMode: TraverseMode.BreadthFirst }),
+		).map(([k]) => k);
+
+		// Assert: Breadth-first order (pre-order)
+		expect(keys).toEqual([[1], [1, 2], [1, 3], [1, 2, 4], [1, 3, 5]]);
+	});
+
+	it('should traverse all nodes in breadth-first order (post-order)', () => {
+		// Arrange
+		const set = new NestedSet();
+		set.add([1]);
+		set.add([1, 2]);
+		set.add([1, 2, 4]);
+		set.add([1, 3]);
+		set.add([1, 3, 5]);
+
+		// Act
+		const keys = Array.from(
+			set.entries({
+				traverseMode: TraverseMode.BreadthFirst,
+				yieldMode: YieldMode.PostOrder,
+			}),
+		).map(([k]) => k);
+
+		// Assert: Breadth-first order (post-order)
+		expect(keys).toEqual([[1, 2, 4], [1, 3, 5], [1, 2], [1, 3], [1]]);
+	});
+
+	it('should return no entries if basePath does not exist', () => {
+		// Arrange
+		const set = new NestedSet();
+		set.add([1, 2]);
+
+		// Act
+		const entries = Array.from(set.entries({ basePath: [9, 9] }));
+
+		// Assert
+		expect(entries).toEqual([]);
+	});
+
+	it('should not yield nodes with no value but with children', () => {
+		// Arrange
+		const set = new NestedSet();
+		set.add([1]);
+		set.add([1, 2]);
+		set.add([1, 2, 3]);
+		// Remove [1, 2] but keep its subnode
+		set.delete([1, 2]);
+
+		// Act
+		const keys = Array.from(set.entries()).map(([k]) => k);
+
+		// Assert
+		expect(keys).toContainEqual([1]);
+		expect(keys).toContainEqual([1, 2, 3]);
+		expect(keys).not.toContainEqual([1, 2]);
 	});
 });
