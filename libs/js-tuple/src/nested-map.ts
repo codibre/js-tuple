@@ -3,12 +3,14 @@ import { IterationOptions, PartialKey, TraverseMode, YieldMode } from './types';
 
 const VAL = Symbol('value');
 const SET = Symbol('valueSet');
+const COUNT = Symbol('count');
 const MAP = Symbol('objectMap');
 
 type CacheNode = {
 	[MAP]?: Map<unknown, CacheNode>;
 	[SET]?: number;
 	[VAL]?: unknown;
+	[COUNT]: number;
 };
 
 type PathArray = readonly unknown[];
@@ -198,9 +200,9 @@ const traverser = {
  * ```
  */
 export class NestedMap<K, V> {
-	private readonly _root: CacheNode = {};
-
-	private _size = 0;
+	private readonly _root: CacheNode = {
+		[COUNT]: 0,
+	};
 
 	/**
 	 * Creates a new NestedMap instance.
@@ -218,22 +220,41 @@ export class NestedMap<K, V> {
 	 * Gets the number of key-value pairs in the map.
 	 */
 	get size(): number {
-		return this._size;
+		return this._root[COUNT];
 	}
 
-	private _getOrCreateNode(nestedKey: K) {
+	private _getOrCreateNode(nestedKey: K, path: CacheNode[]) {
 		const keyArray = treatKey(nestedKey);
 		let current = this._root;
+		path.push(current);
 
 		// Navigate/create the path
 		for (let i = 0; i < keyArray.length; i++) {
 			const key = keyArray[i];
 			const map = (current[MAP] ??= new Map());
-			let next = map.get(key);
-			if (!next) map.set(key, (next = {}));
+			let next: CacheNode = map.get(key);
+			if (!next) {
+				next = {
+					[COUNT]: 0,
+				};
+				map.set(key, next);
+			}
+			path.push(next);
 			current = next;
 		}
 		return current;
+	}
+
+	#internalSet(current: CacheNode, value: V, path: CacheNode[]) {
+		const isNewEntry = current[SET] !== 1;
+
+		// Store the actual value using the special VALUE_KEY
+		current[VAL] = value;
+
+		if (isNewEntry) {
+			path.forEach((p) => p[COUNT]++);
+			current[SET] = 1;
+		}
 	}
 
 	/**
@@ -244,18 +265,11 @@ export class NestedMap<K, V> {
 	 * @returns This NestedMap instance for chaining
 	 */
 	set(nestedKey: K, value: V): this {
-		const current = this._getOrCreateNode(nestedKey);
+		const path: CacheNode[] = [];
+		const current = this._getOrCreateNode(nestedKey, path);
 
 		// Check if this is a new entry by seeing if VALUE_KEY already exists
-		const isNewEntry = current[SET] !== 1;
-
-		// Store the actual value using the special VALUE_KEY
-		current[VAL] = value;
-
-		if (isNewEntry) {
-			this._size++;
-			current[SET] = 1;
-		}
+		this.#internalSet(current, value, path);
 
 		return this;
 	}
@@ -282,10 +296,11 @@ export class NestedMap<K, V> {
 	 * @returns The existing or newly created value
 	 */
 	getOrSet<T extends V>(nestedKey: K, getNewValue: (nestedKey: K) => T): T {
-		const node = this._getOrCreateNode(nestedKey);
-		if (node?.[VAL] !== undefined) return node[VAL] as T;
+		const path: CacheNode[] = [];
+		const node = this._getOrCreateNode(nestedKey, path);
+		if (node[VAL] !== undefined) return node[VAL] as T;
 		const value = getNewValue(nestedKey);
-		this.set(nestedKey, value);
+		this.#internalSet(node, value, path);
 		return value;
 	}
 
@@ -336,12 +351,16 @@ export class NestedMap<K, V> {
 		}
 		// Remove the value
 		current[VAL] = undefined;
+		let decrement = current[SET] ? 1 : 0;
 		current[SET] = 0;
-		this._size--;
 
 		// Clean up empty Maps from the bottom up
 		if (current[MAP]?.size) {
-			if (!deleteSubTree) return true;
+			if (!deleteSubTree) {
+				this._root[COUNT] -= decrement;
+				return true;
+			}
+			decrement = current[COUNT];
 			current[MAP] = undefined;
 		}
 		for (let i = path.length - 1; i >= 0; i--) {
@@ -349,6 +368,7 @@ export class NestedMap<K, V> {
 			const nodeMap = pathItem.map[MAP] as Map<unknown, CacheNode>;
 			const { map, key } = pathItem;
 			nodeMap.delete(key);
+			pathItem.map[COUNT] -= decrement;
 			if (nodeMap.size) break;
 			map[MAP] = undefined;
 		}
@@ -361,7 +381,7 @@ export class NestedMap<K, V> {
 	 */
 	clear(): void {
 		this._root[MAP]?.clear();
-		this._size = 0;
+		this._root[COUNT] = 0;
 	}
 
 	/**
@@ -394,7 +414,7 @@ export class NestedMap<K, V> {
 			root = this._getNode(basePath);
 			if (!root) {
 				return traverser[TraverseMode.BreadthFirst][yieldMode](
-					{},
+					{ [COUNT]: 0 },
 					EMPTY,
 					justValue,
 				);
