@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.5](https://github.com/codibre/js-utils/compare/js-tuple@0.3.4...${npm.name}@0.3.5) (2025-09-07)
+
+### Bug Fixes
+
+* fixing size when deleting children ([4d6b518](https://github.com/codibre/js-utils/commit/4d6b5184680846ecc5c8ae6e9c7c2fa150c6d2d8))
+
 ## [0.3.4](https://github.com/codibre/js-utils/compare/js-tuple@0.3.3...${npm.name}@0.3.4) (2025-09-07)
 
 ### Bug Fixes
