@@ -1,4 +1,4 @@
-import { getRef, Reference } from './get-ref';
+import { RefInfo } from './types';
 
 const objectMap = Symbol('objectMap');
 const value = Symbol('value');
@@ -16,6 +16,52 @@ function createCacheNode(): CacheNode {
 
 const EMPTY_TUPLE: unknown = Object.freeze([]);
 const tupleCache: CacheNode = createCacheNode();
+const primitives = new Map<unknown, RefInfo>();
+export type Reference = object & { [value]: Reference };
+
+/**
+ * Gets an object reference for any value, enabling it to be used as a WeakMap key.
+ *
+ * For objects (including arrays, functions, etc.), returns the object itself.
+ * For primitives (string, number, boolean, null, undefined, symbol, bigint),
+ * returns a cached wrapper object that represents that primitive value.
+ *
+ * This function ensures that the same primitive value always gets the same wrapper object,
+ * enabling primitives to be used consistently in WeakMap-based caching scenarios.
+ *
+ * @param v - Any value to get a reference for
+ * @returns An object that can be used as a WeakMap key
+ *
+ * @example
+ * ```typescript
+ * const ref1 = getRef(42);
+ * const ref2 = getRef(42);
+ * console.log(ref1 === ref2); // true - same wrapper for same primitive
+ *
+ * const obj = {};
+ * const ref3 = getRef(obj);
+ * console.log(ref3 === obj); // true - objects are returned as-is
+ * ```
+ */
+export function getRef(v: unknown, basics?: RefInfo[]): Reference {
+	if (typeof v === 'object' && v !== null) return v as Reference;
+	let el = primitives.get(v);
+	if (!el) primitives.set(v, (el = { ref: { [value]: v }, count: 0 }));
+	basics?.push(el);
+	return el.ref as Reference;
+}
+
+const primitiveRegistry = new FinalizationRegistry((heldValue) => {
+	const current = primitives.get(heldValue);
+	if (!current || current.count <= 1) primitives.delete(heldValue);
+	else current.count--;
+});
+function registerUsage(basics: RefInfo[], result: object) {
+	basics.forEach((x) => {
+		x.count++;
+		primitiveRegistry.register(result, x.ref);
+	});
+}
 
 /**
  * Creates a cached, immutable tuple from an array of elements.
@@ -66,9 +112,10 @@ export function tuple<T extends Readonly<Array<unknown>>>(
 	if (!length) return EMPTY_TUPLE as Readonly<T>;
 
 	let current: CacheNode = tupleCache;
+	const basics: RefInfo[] = [];
 
 	for (let i = 0; i < length; ++i) {
-		const el = getRef(elements[i]);
+		const el = getRef(elements[i], basics);
 
 		const map = current[objectMap];
 		let node = map.get(el);
@@ -81,11 +128,12 @@ export function tuple<T extends Readonly<Array<unknown>>>(
 
 	let ref = current[value];
 	let result: Readonly<T> | undefined;
-	if (ref) result = ref.deref() as Readonly<T>;
-	else {
+	if (ref) result = ref.deref() as Readonly<T> | undefined;
+	if (!result) {
 		current[value] = ref = new WeakRef(
 			(result = Object.freeze(elements.slice()) as Readonly<T>),
 		);
+		registerUsage(basics, result);
 	}
 
 	return result;

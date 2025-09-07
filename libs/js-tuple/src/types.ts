@@ -29,3 +29,8 @@ export type IterationOptions<K> = {
 	traverseMode?: TraverseMode;
 	yieldMode?: YieldMode;
 };
+
+export type RefInfo = {
+	ref: object;
+	count: number;
+};
