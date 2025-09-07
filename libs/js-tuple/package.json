@@ -48,7 +48,12 @@
     "nested set",
     "performance",
     "memoization",
-    "deep key"
+    "deep key",
+    "dfs",
+    "bfs",
+    "data structure",
+    "tree",
+    "graph"
   ],
   "author": "Farenheith",
   "license": "MIT",

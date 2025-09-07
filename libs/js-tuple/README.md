@@ -5,7 +5,7 @@ A high-performance JavaScript library for managed nested maps, nested set and cr
 ## Why js-tuple?
 
 In JavaScript, arrays are compared by reference, not by value. This means `[1, 2, 3] !== [1, 2, 3]`, which makes arrays unsuitable as Map keys when you want value-based equality. **js-tuple** solves this by providing cached, immutable arrays where identical element sequences always return the same reference.
-It also offers the classes **NestMap** ad **NestSet**, which deals with array keys internally giving the same tuple experience but without the need of calling tuple every time.
+It also offers the classes **NestMap** and **NestSet**, which deals with array keys internally giving the same tuple experience but without the need of calling tuple every time.
 
 ## Installation
 
