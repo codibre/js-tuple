@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.0](https://github.com/codibre/js-utils/compare/js-tuple@0.3.5...${npm.name}@0.4.0) (2025-09-07)
+
+### Features
+
+* creating getSubMap and clone ([37ea2f9](https://github.com/codibre/js-utils/commit/37ea2f97b5cd0dff7ae0583502075eee49fb89b5))
+
 ## [0.3.5](https://github.com/codibre/js-utils/compare/js-tuple@0.3.4...${npm.name}@0.3.5) (2025-09-07)
 
 ### Bug Fixes
