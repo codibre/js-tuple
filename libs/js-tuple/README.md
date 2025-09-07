@@ -213,8 +213,10 @@ function createKey<T extends readonly unknown[]>(elements: T): Readonly<T> {
 
 For complex scenarios—such as custom traversal orders, subtree iteration, or post-order cleanup—js-tuple provides highly flexible traversal APIs for both `NestedMap` and `NestedSet`. You can choose between depth-first and breadth-first traversal, and between pre-order and post-order yielding, to match your algorithm's needs.
 
+
 - **NestedMap:** See [Advanced NestedMap.entries](https://github.com/codibre/js-utils/blob/main/libs/js-tuple/docs/nestedmap-entries-advanced.md) for details on traversal modes, yield order, edge cases, and performance considerations.
 - **NestedSet:** See [Advanced NestedSet](https://github.com/codibre/js-utils/blob/main/libs/js-tuple/docs/nestedset-advanced.md) for set-specific traversal, subtree operations, and advanced patterns.
+- **Traversal Performance:** See [Traversal Performance](https://github.com/codibre/js-utils/blob/main/libs/js-tuple/docs/traversal-performance.md) for detailed benchmarks, memory insights, and practical guidance on choosing the best traversal mode for your use case.
 
 These guides cover:
 - How to use `basePath` for partial/subtree traversal

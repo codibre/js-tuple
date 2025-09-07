@@ -1,4 +1,4 @@
-import { BfsList } from './internal';
+import { Queue } from './internal';
 import { IterationOptions, PartialKey, TraverseMode, YieldMode } from './types';
 
 const VAL = Symbol('value');
@@ -15,7 +15,7 @@ type PathArray = readonly unknown[];
 
 interface StackItem {
 	node: CacheNode;
-	path: PathArray;
+	path?: PathArray;
 	visited?: boolean;
 }
 
@@ -23,76 +23,111 @@ function treatKey<K>(nestedKey: K) {
 	return Array.isArray(nestedKey) ? nestedKey : [nestedKey];
 }
 
-function getValueFactory<K, V, T extends boolean>(justValue: T) {
+function getValueFactory<T extends boolean>(justValue: T) {
 	return justValue
-		? ({ node }: StackItem) => node[VAL] as T extends false ? [K, V] : V
-		: ({ path, node }: StackItem) =>
-				[path as K, node[VAL] as V] as T extends false ? [K, V] : V;
+		? ({ node }: StackItem) => node[VAL]
+		: <K, V>({ path, node }: StackItem) => [path as K, node[VAL] as V];
 }
 
 const EMPTY: PathArray = Object.freeze([]);
 
-function pushToStack<T extends boolean>(
-	stack: StackItem[] | BfsList<StackItem>,
-	justValue: T,
-	stackItem: StackItem,
-) {
-	const { node, path } = stackItem;
-	if (!node[MAP]?.size) return;
-	for (const [key, sub] of node[MAP].entries()) {
-		stack.push({
-			node: sub,
-			path: justValue ? EMPTY : Object.freeze([...path, key]),
-		});
-	}
+function pushToStackFactory<T extends boolean>(justValue: T) {
+	return justValue
+		? (stack: StackItem[] | Queue<StackItem>, stackItem: StackItem) => {
+				const { node } = stackItem;
+				if (!node[MAP]?.size) return;
+				for (const sub of node[MAP].values()) {
+					stack.push({
+						node: sub,
+					});
+				}
+			}
+		: (stack: StackItem[] | Queue<StackItem>, stackItem: StackItem) => {
+				const { node, path } = stackItem;
+				if (!node[MAP]?.size) return;
+				for (const [key, sub] of node[MAP].entries()) {
+					stack.push({
+						node: sub,
+						path: [...(path as unknown[]), key],
+					});
+				}
+			};
 }
+
+const getValueOpt = {
+	1: getValueFactory(true),
+	0: getValueFactory(false),
+};
+
+const pushToStackOpt = {
+	1: pushToStackFactory(true),
+	0: pushToStackFactory(false),
+};
 
 const traverser = {
 	[TraverseMode.BreadthFirst]: {
-		*[YieldMode.PostOrder]<K, V, T extends boolean>(
+		*[YieldMode.PostOrder]<K, V, T extends 0 | 1>(
 			root: CacheNode,
 			prevPath: PathArray,
 			justValue: T,
-		): MapIterator<T extends false ? [K, V] : V> {
-			const getValue = getValueFactory<K, V, T>(justValue);
-			function* bfsPostOrderLevel(
-				nodes: Array<StackItem>,
-			): MapIterator<T extends false ? [K, V] : V> {
-				const nextLevel: StackItem[] = [];
-				for (const stackItem of nodes) {
-					pushToStack(nextLevel, justValue, stackItem);
+		): MapIterator<T extends 0 ? [K, V] : V> {
+			const getValue = getValueOpt[justValue] as (
+				si: StackItem,
+			) => T extends 0 ? [K, V] : V;
+			const pushToStack = pushToStackOpt[justValue];
+			// Iterative BFS collecting levels, then yield in post-order
+			let queue: StackItem[] = [{ node: root, path: prevPath }];
+			const levels: StackItem[][] = [];
+			while (queue.length) {
+				const level: StackItem[] = [];
+				const nextQueue: StackItem[] = [];
+				for (let i = 0; i < queue.length; i++) {
+					const stackItem = queue[i] as StackItem;
+					level.push(stackItem);
+					pushToStack(nextQueue, stackItem);
 				}
-				if (nextLevel.length) yield* bfsPostOrderLevel(nextLevel);
-				for (const stackItem of nodes) {
-					if (stackItem.node[SET]) yield getValue(stackItem);
+				levels.push(level);
+				queue = nextQueue;
+			}
+			// Yield nodes in post-order (bottom-up)
+			for (let i = levels.length - 1; i >= 0; i--) {
+				const level = levels[i];
+				if (!level) continue;
+				for (let j = 0; j < level.length; j++) {
+					const stackItem = level[j];
+					if (stackItem?.node[SET]) yield getValue(stackItem);
 				}
 			}
-			yield* bfsPostOrderLevel([{ node: root, path: prevPath }]);
 		},
-
-		*[YieldMode.PreOrder]<K, V, T extends boolean>(
-			root: CacheNode,
-			prevPath: PathArray,
+		*[YieldMode.PreOrder]<K, V, T extends 0 | 1>(
+			node: CacheNode,
+			path: PathArray,
 			justValue: T,
-		): MapIterator<T extends false ? [K, V] : V> {
-			const queue = new BfsList({ node: root, path: prevPath });
-			const getValue = getValueFactory<K, V, T>(justValue);
-			do {
+		): MapIterator<T extends 0 ? [K, V] : V> {
+			const queue = new Queue({ node, path });
+			const getValue = getValueOpt[justValue] as (
+				si: StackItem,
+			) => T extends 0 ? [K, V] : V;
+			const pushToStack = pushToStackOpt[justValue];
+			while (queue.length) {
 				const stackItem = queue.pop() as StackItem;
 				if (stackItem.node[SET]) yield getValue(stackItem);
-				pushToStack(queue, justValue, stackItem);
-			} while (queue.length > 0);
+				pushToStack(queue, stackItem);
+			}
 		},
 	},
 
 	[TraverseMode.DepthFirst]: {
-		*[YieldMode.PostOrder]<K, V, T extends boolean>(
+		*[YieldMode.PostOrder]<K, V, T extends 0 | 1>(
 			root: CacheNode,
 			prevPath: unknown[],
 			justValue: T,
-		): MapIterator<T extends false ? [K, V] : V> {
+		): MapIterator<T extends 0 ? [K, V] : V> {
 			const stack: StackItem[] = [{ node: root, path: prevPath }];
-			const getValue = getValueFactory<K, V, T>(justValue);
+			const getValue = getValueOpt[justValue] as (
+				si: StackItem,
+			) => T extends 0 ? [K, V] : V;
+			const pushToStack = pushToStackOpt[justValue];
 			do {
 				const current = stack.pop() as StackItem;
 				const { node } = current;
@@ -103,22 +138,25 @@ const traverser = {
 				} else {
 					current.visited = true;
 					stack.push(current);
-					pushToStack(stack, justValue, current);
+					pushToStack(stack, current);
 				}
 			} while (stack.length > 0);
 		},
 
-		*[YieldMode.PreOrder]<K, V, T extends boolean>(
+		*[YieldMode.PreOrder]<K, V, T extends 0 | 1>(
 			root: CacheNode,
 			prevPath: readonly unknown[],
 			justValue: T,
-		): MapIterator<T extends false ? [K, V] : V> {
+		): MapIterator<T extends 0 ? [K, V] : V> {
 			const stack: Array<StackItem> = [{ node: root, path: prevPath }];
-			const getValue = getValueFactory<K, V, T>(justValue);
+			const getValue = getValueOpt[justValue] as (
+				si: StackItem,
+			) => T extends 0 ? [K, V] : V;
+			const pushToStack = pushToStackOpt[justValue];
 			do {
 				const current = stack.pop() as StackItem;
 				if (current.node[SET]) yield getValue(current);
-				pushToStack(stack, justValue, current);
+				pushToStack(stack, current);
 			} while (stack.length > 0);
 		},
 	},
@@ -341,10 +379,10 @@ export class NestedMap<K, V> {
 		}
 	}
 
-	#traverse<T extends boolean>(
+	#traverse<T extends 0 | 1>(
 		justValue: T,
 		options: IterationOptions<K> = {},
-	): MapIterator<T extends false ? [K, V] : V> {
+	): MapIterator<T extends 0 ? [K, V] : V> {
 		const {
 			basePath,
 			traverseMode = TraverseMode.DepthFirst,
@@ -371,7 +409,7 @@ export class NestedMap<K, V> {
 	 * Returns an iterator of key-value pairs.
 	 */
 	entries(options: IterationOptions<K> = {}): IterableIterator<[K, V]> {
-		return this.#traverse(false, options);
+		return this.#traverse(0, options);
 	}
 
 	/**
@@ -385,14 +423,14 @@ export class NestedMap<K, V> {
 	 * Returns an iterator of values.
 	 */
 	values(options: IterationOptions<K> = {}): MapIterator<V> {
-		return this.#traverse(true, options);
+		return this.#traverse(1, options);
 	}
 
 	/**
 	 * Returns the default iterator (same as entries()).
 	 */
 	[Symbol.iterator](): IterableIterator<[K, V]> {
-		return this.#traverse(false, {});
+		return this.#traverse(0, {});
 	}
 
 	/**
