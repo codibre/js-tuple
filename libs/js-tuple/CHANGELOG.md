@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.2](https://github.com/codibre/js-utils/compare/js-tuple@0.3.1...${npm.name}@0.3.2) (2025-09-07)
+
+### Bug Fixes
+
+* trying to evict unused primitive refs ([a7427ad](https://github.com/codibre/js-utils/commit/a7427ad8dd2d1676d07835ce6a77b115ddda92d1))
+
 ## [0.3.1](https://github.com/codibre/js-utils/compare/js-tuple@0.3.0...${npm.name}@0.3.1) (2025-09-07)
 
 ### Bug Fixes
