@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.0](https://github.com/codibre/js-utils/compare/js-tuple@0.2.1...${npm.name}@0.3.0) (2025-09-06)
+
+### Features
+
+* improving traverse ([a7d180c](https://github.com/codibre/js-utils/commit/a7d180ce4d6b7ef5c3e878e527f19bda8e55ea31))
+
+### Bug Fixes
+
+* bettering getOrSet callback signature ([0b50b7e](https://github.com/codibre/js-utils/commit/0b50b7ede5bfa83f2477b6fe12e4b564b991a957))
+
 ## [0.2.1](https://github.com/codibre/js-utils/compare/js-tuple@0.2.0...${npm.name}@0.2.1) (2025-09-06)
 
 ### Bug Fixes
