@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.3](https://github.com/codibre/js-utils/compare/js-tuple@0.3.2...${npm.name}@0.3.3) (2025-09-07)
+
+### Bug Fixes
+
+* advanced example links ([9560b5b](https://github.com/codibre/js-utils/commit/9560b5b8a502075822fb431da49dac4bd3f628f5))
+
 ## [0.3.2](https://github.com/codibre/js-utils/compare/js-tuple@0.3.1...${npm.name}@0.3.2) (2025-09-07)
 
 ### Bug Fixes
