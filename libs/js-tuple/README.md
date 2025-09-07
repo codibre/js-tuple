@@ -1,6 +1,7 @@
 # js-tuple
 
 A high-performance JavaScript library for managed nested maps, nested set and creating immutable, cached tuples that can be safely used as Map keys.
+The Nested classes are also high-performant and strong tree structures that can be used for high configurable traversals
 
 ## Why js-tuple?
 
@@ -217,6 +218,7 @@ For complex scenarios—such as custom traversal orders, subtree iteration, or p
 - **NestedMap:** See [Advanced NestedMap.entries](https://github.com/codibre/js-utils/blob/main/libs/js-tuple/docs/nestedmap-entries-advanced.md) for details on traversal modes, yield order, edge cases, and performance considerations.
 - **NestedSet:** See [Advanced NestedSet](https://github.com/codibre/js-utils/blob/main/libs/js-tuple/docs/nestedset-advanced.md) for set-specific traversal, subtree operations, and advanced patterns.
 - **Traversal Performance:** See [Traversal Performance](https://github.com/codibre/js-utils/blob/main/libs/js-tuple/docs/traversal-performance.md) for detailed benchmarks, memory insights, and practical guidance on choosing the best traversal mode for your use case.
+- **SubMaps and Cloning:** See [Methods to Obtain Subtrees in NestedMap](https://github.com/codibre/js-utils/blob/main/libs/js-tuple/docs/advanced-getsubmap-example.md) for good insights about working with submaps (which can perform incredibly good for bulk operations) or deep clones of maps and submaps.
 
 These guides cover:
 - How to use `basePath` for partial/subtree traversal
