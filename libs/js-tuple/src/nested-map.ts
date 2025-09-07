@@ -56,6 +56,26 @@ function pushToStackFactory<T extends boolean>(justValue: T) {
 			};
 }
 
+const incrementCount = (p: CacheNode): number => p[COUNT]++;
+
+function propagateDelete(
+	map: CacheNode,
+	key: unknown,
+	decrement: number,
+	canDelete: boolean,
+) {
+	const nodeMap = map[MAP] as Map<unknown, CacheNode>;
+	map[COUNT] -= decrement;
+	if (canDelete) {
+		nodeMap.delete(key);
+		if (!nodeMap.size) {
+			map[MAP] = undefined;
+			return map[SET] !== 1;
+		}
+	}
+	return false;
+}
+
 const getValueOpt = {
 	1: getValueFactory(true),
 	0: getValueFactory(false),
@@ -164,6 +184,21 @@ const traverser = {
 	},
 };
 
+const empty = {
+	1: traverser[TraverseMode.DepthFirst][YieldMode.PreOrder](
+		{ [COUNT]: 0 },
+		EMPTY,
+		1,
+	),
+	0: traverser[TraverseMode.DepthFirst][YieldMode.PreOrder](
+		{ [COUNT]: 0 },
+		EMPTY,
+		0,
+	),
+};
+
+type TraverseItem<T extends 0 | 1, K, V> = T extends 0 ? [K, V] : V;
+
 /**
  * A Map implementation that uses arrays as keys by storing them in a nested Map structure.
  *
@@ -200,7 +235,9 @@ const traverser = {
  * ```
  */
 export class NestedMap<K, V> {
-	private readonly _root: CacheNode = {
+	#basePath?: PartialKey<K>;
+	#baseNode?: CacheNode[];
+	#root: CacheNode = {
 		[COUNT]: 0,
 	};
 
@@ -220,12 +257,13 @@ export class NestedMap<K, V> {
 	 * Gets the number of key-value pairs in the map.
 	 */
 	get size(): number {
-		return this._root[COUNT];
+		return this.#root[COUNT];
 	}
 
-	private _getOrCreateNode(nestedKey: K, path: CacheNode[]) {
+	#getOrCreateNode(nestedKey: PartialKey<K> | undefined, path: CacheNode[]) {
+		if (nestedKey === undefined) return this.#root;
 		const keyArray = treatKey(nestedKey);
-		let current = this._root;
+		let current = this.#root;
 		path.push(current);
 
 		// Navigate/create the path
@@ -252,7 +290,8 @@ export class NestedMap<K, V> {
 		current[VAL] = value;
 
 		if (isNewEntry) {
-			path.forEach((p) => p[COUNT]++);
+			path.forEach(incrementCount);
+			this.#baseNode?.forEach(incrementCount);
 			current[SET] = 1;
 		}
 	}
@@ -266,7 +305,7 @@ export class NestedMap<K, V> {
 	 */
 	set(nestedKey: K, value: V): this {
 		const path: CacheNode[] = [];
-		const current = this._getOrCreateNode(nestedKey, path);
+		const current = this.#getOrCreateNode(nestedKey, path);
 
 		// Check if this is a new entry by seeing if VALUE_KEY already exists
 		this.#internalSet(current, value, path);
@@ -274,9 +313,9 @@ export class NestedMap<K, V> {
 		return this;
 	}
 
-	private _getNode(nestedKey: PartialKey<K>) {
+	#getNode(nestedKey: PartialKey<K>) {
 		const keyArray = Array.isArray(nestedKey) ? nestedKey : [nestedKey];
-		let current = this._root;
+		let current = this.#root;
 		// Navigate/create the path
 		for (let i = 0; i < keyArray.length; i++) {
 			const key = keyArray[i];
@@ -297,7 +336,7 @@ export class NestedMap<K, V> {
 	 */
 	getOrSet<T extends V>(nestedKey: K, getNewValue: (nestedKey: K) => T): T {
 		const path: CacheNode[] = [];
-		const node = this._getOrCreateNode(nestedKey, path);
+		const node = this.#getOrCreateNode(nestedKey, path);
 		if (node[VAL] !== undefined) return node[VAL] as T;
 		const value = getNewValue(nestedKey);
 		this.#internalSet(node, value, path);
@@ -311,7 +350,7 @@ export class NestedMap<K, V> {
 	 * @returns The value if found, undefined otherwise
 	 */
 	get(keyArray: K): V | undefined {
-		return this._getNode(keyArray)?.[VAL] as V | undefined;
+		return this.#getNode(keyArray)?.[VAL] as V | undefined;
 	}
 
 	/**
@@ -321,7 +360,7 @@ export class NestedMap<K, V> {
 	 * @returns True if the key exists, false otherwise
 	 */
 	has(keyArray: K): boolean {
-		return this._getNode(keyArray)?.[VAL] !== undefined;
+		return this.#getNode(keyArray)?.[VAL] !== undefined;
 	}
 
 	/**
@@ -335,7 +374,7 @@ export class NestedMap<K, V> {
 		const keyArray = treatKey(nestedKey);
 
 		const path: Array<{ map: CacheNode; key: unknown }> = [];
-		let current = this._root;
+		let current = this.#root;
 
 		// Navigate the path and record it for cleanup
 		for (let i = 0; i < keyArray.length; i++) {
@@ -355,22 +394,23 @@ export class NestedMap<K, V> {
 		current[SET] = 0;
 
 		// Clean up empty Maps from the bottom up
-		if (current[MAP]?.size) {
-			if (!deleteSubTree) {
-				this._root[COUNT] -= decrement;
-				return true;
-			}
+		if (deleteSubTree) {
 			decrement = current[COUNT];
 			current[MAP] = undefined;
 		}
+		let canDelete = !current[MAP]?.size;
 		for (let i = path.length - 1; i >= 0; i--) {
-			const pathItem = path[i] as Required<(typeof path)[0]>;
-			const nodeMap = pathItem.map[MAP] as Map<unknown, CacheNode>;
-			const { map, key } = pathItem;
-			nodeMap.delete(key);
-			pathItem.map[COUNT] -= decrement;
-			if (nodeMap.size) break;
-			map[MAP] = undefined;
+			const { map, key } = path[i] as Required<(typeof path)[0]>;
+			canDelete = propagateDelete(map, key, decrement, canDelete);
+		}
+
+		const baseNode = this.#baseNode;
+		if (!baseNode?.length || !this.#basePath) return true;
+		const basePath = treatKey(this.#basePath);
+		for (let i = baseNode.length - 1; i >= 0; i--) {
+			const map = baseNode[i] as CacheNode;
+			const key = basePath[i];
+			canDelete = propagateDelete(map, key, decrement, canDelete);
 		}
 
 		return true;
@@ -380,8 +420,8 @@ export class NestedMap<K, V> {
 	 * Removes all entries from the map.
 	 */
 	clear(): void {
-		this._root[MAP]?.clear();
-		this._root[COUNT] = 0;
+		this.#root[MAP]?.clear();
+		this.#root[COUNT] = 0;
 	}
 
 	/**
@@ -402,7 +442,7 @@ export class NestedMap<K, V> {
 	#traverse<T extends 0 | 1>(
 		justValue: T,
 		options: IterationOptions<K> = {},
-	): MapIterator<T extends 0 ? [K, V] : V> {
+	): MapIterator<TraverseItem<T, K, V>> {
 		const {
 			basePath,
 			traverseMode = TraverseMode.DepthFirst,
@@ -411,24 +451,18 @@ export class NestedMap<K, V> {
 		let root: CacheNode | undefined;
 		const prevPath: unknown[] = [];
 		if (basePath) {
-			root = this._getNode(basePath);
-			if (!root) {
-				return traverser[TraverseMode.BreadthFirst][yieldMode](
-					{ [COUNT]: 0 },
-					EMPTY,
-					justValue,
-				);
-			} // empty iterator
+			root = this.#getNode(basePath);
+			if (!root) return empty[justValue] as MapIterator<TraverseItem<T, K, V>>;
 			if (Array.isArray(basePath)) prevPath.push(...basePath);
 			else prevPath.push(basePath);
-		} else root = this._root;
+		} else root = this.#root;
 		return traverser[traverseMode][yieldMode](root, prevPath, justValue);
 	}
 
 	/**
 	 * Returns an iterator of key-value pairs.
 	 */
-	entries(options: IterationOptions<K> = {}): IterableIterator<[K, V]> {
+	entries(options?: IterationOptions<K>): MapIterator<[K, V]> {
 		return this.#traverse(0, options);
 	}
 
@@ -458,5 +492,53 @@ export class NestedMap<K, V> {
 	 */
 	get [Symbol.toStringTag](): string {
 		return 'NestedMap';
+	}
+
+	/**
+	 * Creates a new NestedMap instance that represents a subtree starting from the specified basePath.
+	 * The new NestedMap is a view from the same structure and values as the original map for the specified subtree.
+	 * Changes to the subtree in the new map will be reflected in the original map and vice versa.
+	 * @param basePath - The path to the subtree root
+	 * @returns A new NestedMap instance exposing the subtree
+	 */
+	getSubMap(basePath: PartialKey<K>): NestedMap<K, V> {
+		const result = new NestedMap<K, V>();
+		const baseNode: CacheNode[] = [];
+		result.#root = this.#getOrCreateNode(basePath, baseNode);
+		result.#baseNode = baseNode;
+		result.#basePath = basePath;
+		return result;
+	}
+
+	/**
+	 * Efficiently deep clones the NestedMap or a subtree if basePath is provided (O(N)), using BFS pre-order for insertion order preservation.
+	 * @param basePath - Optional path to clone only a subtree
+	 * @returns A new NestedMap instance with the same structure and values
+	 */
+	clone(basePath?: PartialKey<K>): NestedMap<K, V> {
+		let sourceNode = this.#root;
+		let base: unknown[] = [];
+		if (basePath) {
+			const found = this.#getNode(basePath);
+			if (!found) return new NestedMap<K, V>();
+			sourceNode = found;
+			base = treatKey(basePath);
+		}
+		const result = new NestedMap<K, V>();
+		const queue = new Queue({ src: sourceNode, tgt: result.#root, path: base });
+		queue.exhaust(({ src, tgt, path }) => {
+			tgt[COUNT] = src[COUNT];
+			if (src[SET]) tgt[SET] = src[SET];
+			if (src[VAL] !== undefined) tgt[VAL] = src[VAL];
+			if (src[MAP]) {
+				tgt[MAP] = new Map();
+				for (const [key, child] of src[MAP].entries()) {
+					const childTgt: CacheNode = { [COUNT]: child[COUNT] };
+					tgt[MAP].set(key, childTgt);
+					queue.push({ src: child, tgt: childTgt, path: [...path, key] });
+				}
+			}
+		});
+		return result;
 	}
 }

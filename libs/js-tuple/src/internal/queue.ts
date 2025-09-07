@@ -51,6 +51,13 @@ export class Queue<T> {
 		return item;
 	}
 
+	exhaust(cb: (item: T) => void): void {
+		while (this.length) {
+			const item = this.pop() as T;
+			cb(item);
+		}
+	}
+
 	get length(): number {
 		return this._length;
 	}
