@@ -1,6 +1,6 @@
 {
   "name": "js-tuple",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "High performance tuples for Map/Set indexing",
   "main": "dist/index.js",
   "exports": {
