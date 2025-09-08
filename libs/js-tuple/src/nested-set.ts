@@ -80,4 +80,14 @@ export class NestedSet<K> implements Set<K> {
 		result.#map = this.#map.clone(basePath);
 		return result;
 	}
+
+	/**
+	 * Returns the number of entries in the subtree rooted at the specified nested key.
+	 * The entries considered are all the values set at or below the specified key.
+	 * @param nestedKey
+	 * @returns The count of entries in the subtree, or 0 if the key does not exist.
+	 */
+	nodeSize(nestedKey: PartialKey<K>): number {
+		return this.#map.nodeSize(nestedKey);
+	}
 }
