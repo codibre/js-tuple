@@ -1,4 +1,4 @@
-import { Queue } from './internal';
+import { ChunkedQueue } from './chunked-queue';
 import { IterationOptions, PartialKey, TraverseMode, YieldMode } from './types';
 
 const VAL = Symbol('value');
@@ -35,7 +35,7 @@ const EMPTY: PathArray = Object.freeze([]);
 
 function pushToStackFactory<T extends boolean>(justValue: T) {
 	return justValue
-		? (stack: StackItem[] | Queue<StackItem>, stackItem: StackItem) => {
+		? (stack: StackItem[] | ChunkedQueue<StackItem>, stackItem: StackItem) => {
 				const { node } = stackItem;
 				if (!node[MAP]?.size) return;
 				for (const sub of node[MAP].values()) {
@@ -44,7 +44,7 @@ function pushToStackFactory<T extends boolean>(justValue: T) {
 					});
 				}
 			}
-		: (stack: StackItem[] | Queue<StackItem>, stackItem: StackItem) => {
+		: (stack: StackItem[] | ChunkedQueue<StackItem>, stackItem: StackItem) => {
 				const { node, path } = stackItem;
 				if (!node[MAP]?.size) return;
 				for (const [key, sub] of node[MAP].entries()) {
@@ -126,7 +126,7 @@ const traverser = {
 			path: PathArray,
 			justValue: T,
 		): MapIterator<T extends 0 ? [K, V] : V> {
-			const queue = new Queue({ node, path });
+			const queue = new ChunkedQueue({ node, path });
 			const getValue = getValueOpt[justValue] as (
 				si: StackItem,
 			) => T extends 0 ? [K, V] : V;
@@ -525,7 +525,11 @@ export class NestedMap<K, V> {
 			base = treatKey(basePath);
 		}
 		const result = new NestedMap<K, V>();
-		const queue = new Queue({ src: sourceNode, tgt: result.#root, path: base });
+		const queue = new ChunkedQueue({
+			src: sourceNode,
+			tgt: result.#root,
+			path: base,
+		});
 		queue.exhaust(({ src, tgt, path }) => {
 			tgt[COUNT] = src[COUNT];
 			if (src[SET]) tgt[SET] = src[SET];

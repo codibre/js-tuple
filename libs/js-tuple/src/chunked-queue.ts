@@ -21,7 +21,12 @@ class Block<T> {
 	}
 }
 
-export class Queue<T> {
+/**
+ * A memory-efficient FIFO queue optimized for high-throughput scenarios.
+ * Uses fixed-size array blocks to minimize memory allocations and copying.
+ * Suitable for scenarios with frequent enqueue/dequeue operations.
+ */
+export class ChunkedQueue<T> {
 	private head?: Block<T>;
 	private tail?: Block<T>;
 	private _length = 0;
@@ -30,6 +35,10 @@ export class Queue<T> {
 		this.push(item);
 	}
 
+	/**
+	 * Adds an item to the end of the queue.
+	 * @param item The item to add.
+	 */
 	push(item: T): void {
 		if (!this.tail || this.tail.isFull()) {
 			const newBlock = new Block<T>();
@@ -41,6 +50,10 @@ export class Queue<T> {
 		this._length++;
 	}
 
+	/**
+	 * Removes and returns the oldest item of the queue.
+	 * @returns The oldest item of the queue, or undefined if the queue is empty.
+	 */
 	pop(): T | undefined {
 		if (!this.head || this.head.isEmpty()) {
 			if (!this.head?.next) return undefined;
@@ -51,6 +64,12 @@ export class Queue<T> {
 		return item;
 	}
 
+	/**
+	 * Processes and removes all items from the queue.
+	 * The callback may add more items to the queue during processing,
+	 * But it needs to take care of the logic to avoid infinite loops.
+	 * @param cb Callback function to process each item.
+	 */
 	exhaust(cb: (item: T) => void): void {
 		while (this.length) {
 			const item = this.pop() as T;
@@ -58,6 +77,10 @@ export class Queue<T> {
 		}
 	}
 
+	/**
+	 * The number of items currently in the queue.
+	 * @returns The number of items in the queue.
+	 */
 	get length(): number {
 		return this._length;
 	}
