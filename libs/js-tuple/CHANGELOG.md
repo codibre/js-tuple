@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.0](https://github.com/codibre/js-utils/compare/js-tuple@0.4.2...${npm.name}@0.5.0) (2025-09-08)
+
+### Features
+
+* creating nodeSize ([46dfd32](https://github.com/codibre/js-utils/commit/46dfd3219345c607be524523936ec8b0c2a6cf07))
+
 ## [0.4.2](https://github.com/codibre/js-utils/compare/js-tuple@0.4.1...${npm.name}@0.4.2) (2025-09-08)
 
 ### Bug Fixes
