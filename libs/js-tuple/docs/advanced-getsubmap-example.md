@@ -99,7 +99,8 @@ console.log(subClone.get([3])); // 'z'
 - **Multi-tenant Data:**
   - Partition data by tenant/user/project, and operate on each partition via submaps for isolation and clarity.
 
-
+## About NestedSet
+NestedSet offers the equivalent methods, too, **getSubSet** and **clone**, and everything explained here is valid for them, too!
 
 ## Notes
 - Traversal from a submap yields keys relative to the base path.
