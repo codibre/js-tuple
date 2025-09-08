@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.2](https://github.com/codibre/js-utils/compare/js-tuple@0.4.1...${npm.name}@0.4.2) (2025-09-08)
+
+### Bug Fixes
+
+* adding getSubSet and clone for NestedSet ([418f795](https://github.com/codibre/js-utils/commit/418f7952cda4ad95b79baa3fbdd7e83e122a8672))
+
 ## [0.4.1](https://github.com/codibre/js-utils/compare/js-tuple@0.4.0...${npm.name}@0.4.1) (2025-09-07)
 
 ### Bug Fixes
