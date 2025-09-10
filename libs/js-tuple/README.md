@@ -3,6 +3,9 @@
 A high-performance JavaScript library for managed nested maps, nested set and creating immutable, cached tuples that can be safely used as Map keys.
 The Nested classes are also high-performant and strong tree structures that can be used for high configurable traversals
 
+[![Maintainability](https://qlty.sh/gh/codibre/projects/js-utils/maintainability.svg)](https://qlty.sh/gh/codibre/projects/js-utils)
+[![Code Coverage](https://qlty.sh/gh/codibre/projects/js-utils/coverage.svg)](https://qlty.sh/gh/codibre/projects/js-utils)
+
 ## Why js-tuple?
 
 In JavaScript, arrays are compared by reference, not by value. This means `[1, 2, 3] !== [1, 2, 3]`, which makes arrays unsuitable as Map keys when you want value-based equality. **js-tuple** solves this by providing cached, immutable arrays where identical element sequences always return the same reference.
