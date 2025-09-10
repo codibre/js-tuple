@@ -8,7 +8,7 @@ module.exports = {
   preset: 'ts-jest',
   coverageDirectory: './coverage',
   moduleFileExtensions: ['js', 'json', 'ts'],
-  collectCoverageFrom: ['**/src/**/*.ts'],
+  collectCoverageFrom: ['**/src/**/*.ts', "!**/node_modules/**"],
   testEnvironment: 'node',
   cacheDirectory: '../../.jest',
   forceExit: true,
