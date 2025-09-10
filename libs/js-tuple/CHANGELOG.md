@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.6.0](https://github.com/codibre/js-utils/compare/js-tuple@0.5.0...${npm.name}@0.6.0) (2025-09-10)
+
+### Features
+
+* exposing ChunkedQueue ([ad9a72b](https://github.com/codibre/js-utils/commit/ad9a72b3abf6f96f3e17f12573aae071c57f956e))
+
+### Bug Fixes
+
+* configurint qlty ([aa76873](https://github.com/codibre/js-utils/commit/aa768730b33908331530b831d98c24e515a752d7))
+
 ## [0.5.0](https://github.com/codibre/js-utils/compare/js-tuple@0.4.2...${npm.name}@0.5.0) (2025-09-08)
 
 ### Features
