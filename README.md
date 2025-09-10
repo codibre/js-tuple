@@ -1,10 +1,11 @@
-
 # js-utils
 
 Repo for useful js utilities
 
 [![GitHub Issues](https://img.shields.io/github/issues/codibre/js-utils.svg)](https://github.com/codibre/js-utils/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/codibre/js-utils.svg)](https://github.com/codibre/js-utils/stargazers)
+[![Maintainability](https://qlty.sh/gh/codibre/projects/js-utils/maintainability.svg)](https://qlty.sh/gh/codibre/projects/js-utils)
+[![Code Coverage](https://qlty.sh/gh/codibre/projects/js-utils/coverage.svg)](https://qlty.sh/gh/codibre/projects/js-utils)
 
 ---
 

@@ -26,9 +26,10 @@ jobs:
       - name: Build and Test
         uses: ./.github/actions/build-and-test
         with:
-          node-auth-token: ${{ secrets.NPM_TOKEN }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          cc-test-reporter-id: ${{ secrets.CC_TEST_REPORTER_ID }}
+            node-auth-token: ${{ secrets.NPM_TOKEN }}
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+            cc-test-reporter-id: ${{ secrets.CC_TEST_REPORTER_ID }}
+            qlty-coverage-token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
 
   check-releases:
     runs-on: ubuntu-latest
